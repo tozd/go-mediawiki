@@ -1,0 +1,5 @@
+.history/
+tests.xml
+coverage.*
+codeclimate.json
+/keys.txt

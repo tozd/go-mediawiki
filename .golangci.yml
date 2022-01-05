@@ -1,0 +1,94 @@
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    exclude-functions:
+      - io.WriteString
+    enable-all: true
+  gocritic:
+    disabled-checks:
+      - ifElseChain
+  godot:
+    scope: all
+  gofumpt:
+    go: "1.17"
+  goimports:
+    local-prefixes: gitlab.com/tozd/go/mediawiki
+  gosimple:
+    go: "1.17"
+    checks:
+      - all
+  govet:
+    check-shadowing: true
+  nolintlint:
+    allow-unused: false
+    allow-leading-space: false
+    require-specific: true
+  stylecheck:
+    go: "1.17"
+    checks:
+      - all
+  staticcheck:
+    go: "1.17"
+    checks:
+      - all
+  unused:
+    go: "1.17"
+
+linters:
+  disable-all: true
+  enable:
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - deadcode
+    - dupl
+    - durationcheck
+    - errcheck
+    - errname
+    - errorlint
+    - exhaustive
+    - exhaustivestruct
+    - exportloopref
+    - goconst
+    - gocritic
+    - godot
+    - gofmt
+    - gofumpt
+    - goimports
+    - gomnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - ireturn
+    - lll
+    - misspell
+    - nakedret
+    - nilerr
+    - nilnil
+    - noctx
+    - nolintlint
+    - predeclared
+    - revive
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - tenv
+    - testpackage
+    - thelper
+    - tparallel
+    - typecheck
+    - unconvert
+    - unused
+    - varcheck
+    - wastedassign
+    - whitespace
+    # - importas
+    # - wrapcheck
+
+issues:
+  exclude-rules:
+    - path: .*_test\.go
+      linters:
+        - dupl
