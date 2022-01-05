@@ -42,7 +42,7 @@ func TestProcessWikipediaDumpLatest(t *testing.T) {
 	if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, context.Canceled) {
 		assert.Fail(t, "not a context error: %+v", err)
 	}
-	assert.Equal(t, int64(1), articleCounter)
+	assert.LessOrEqual(t, int64(1), articleCounter)
 }
 
 func TestProcessWikipediaDumpExplicit(t *testing.T) {
