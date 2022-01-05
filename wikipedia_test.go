@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	wikipediaTestDump = "https://gitlab.com/tozd/go/mediawiki/-/raw/master/testdata/enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar.gz"
+	wikipediaTestDump = "https://gitlab.com/tozd/go/mediawiki/-/raw/main/testdata/enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar.gz"
 )
 
 func TestProcessWikipediaDumpLatest(t *testing.T) {

@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	wikidataTestDump = "https://gitlab.com/tozd/go/mediawiki/-/raw/master/testdata/wikidata-testdata-all.json.bz2"
+	wikidataTestDump = "https://gitlab.com/tozd/go/mediawiki/-/raw/main/testdata/wikidata-testdata-all.json.bz2"
 )
 
 func TestProcessWikidataDumpLatest(t *testing.T) {
