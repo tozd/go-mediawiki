@@ -128,8 +128,8 @@ func getDumpJSONs(
 			return
 		}
 		defer func() {
-			fileLength, err := compressedFile.Seek(0, io.SeekCurrent)
-			if err != nil || downloadReader.Size() != fileLength {
+			info, err := os.Stat(p)
+			if err != nil || downloadReader.Size() != info.Size() {
 				// Incomplete file. Delete.
 				_ = os.Remove(p)
 			}

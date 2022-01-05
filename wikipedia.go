@@ -57,8 +57,8 @@ func ProcessWikipediaDump(ctx context.Context, config *ProcessDumpConfig, proces
 	var err errors.E
 	var url, cacheDir, cacheGlob string
 	var cacheFilename func(*http.Response) (string, errors.E)
-	if config.DumpURL != "" {
-		url = config.DumpURL
+	if config.URL != "" {
+		url = config.URL
 	} else {
 		url, err = latestWikipediaRun(client, config.UserAgent)
 		if err != nil {

@@ -26,8 +26,8 @@ func ProcessWikidataDump(ctx context.Context, config *ProcessDumpConfig, process
 	}
 	var url, cacheDir, cacheGlob string
 	var cacheFilename func(*http.Response) (string, errors.E)
-	if config.DumpURL != "" {
-		url = config.DumpURL
+	if config.URL != "" {
+		url = config.URL
 		filename := path.Base(url)
 		cacheGlob = filename
 		cacheFilename = func(_ *http.Response) (string, errors.E) {

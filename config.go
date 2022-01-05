@@ -5,7 +5,7 @@ import (
 )
 
 type ProcessDumpConfig struct {
-	DumpURL                string
+	URL                    string
 	CacheDir               string
 	Client                 *retryablehttp.Client
 	DecompressionThreads   int

@@ -2,6 +2,9 @@ package mediawiki_test
 
 import (
 	"context"
+	"os"
+	"path"
+	"path/filepath"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -9,6 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/tozd/go/errors"
 	"gitlab.com/tozd/go/mediawiki"
+)
+
+const (
+	wikipediaTestDump = "https://gitlab.com/tozd/go/mediawiki/-/raw/master/testdata/enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar.gz"
 )
 
 func TestProcessWikipediaDumpLatest(t *testing.T) {
@@ -35,4 +42,32 @@ func TestProcessWikipediaDumpLatest(t *testing.T) {
 		assert.Fail(t, "not a context error: %+v", err)
 	}
 	assert.Equal(t, int64(1), articleCounter)
+}
+
+func TestProcessWikipediaDumpExplicit(t *testing.T) {
+	cacheDir := t.TempDir()
+
+	articleCounter := int64(0)
+
+	errE := mediawiki.ProcessWikipediaDump(
+		context.Background(),
+		&mediawiki.ProcessDumpConfig{
+			URL:       wikipediaTestDump,
+			CacheDir:  cacheDir,
+			UserAgent: "Unit test user agent (https://gitlab.com/tozd/go/mediawiki)",
+		},
+		func(a mediawiki.Article) errors.E {
+			atomic.AddInt64(&articleCounter, int64(1))
+			return nil
+		},
+	)
+	assert.NoError(t, errE)
+	assert.Equal(t, int64(10), articleCounter)
+
+	dumpPath := filepath.Join(cacheDir, path.Base(wikipediaTestDump))
+	assert.FileExists(t, dumpPath)
+
+	info, err := os.Stat(dumpPath)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(64819), info.Size())
 }
