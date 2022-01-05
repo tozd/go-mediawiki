@@ -41,10 +41,13 @@ func latestWikipediaRun(client *retryablehttp.Client, userAgent string) (string,
 
 	lastDate := data.Links[len(data.Links)-1]
 
-	return fmt.Sprintf("https://dumps.wikimedia.org/other/enterprise_html/runs/%s/enwiki-NS0-%s-ENTERPRISE-HTML.json.tar.gz", lastDate, lastDate), nil
+	return fmt.Sprintf("https://dumps.wikimedia.org/other/enterprise_html/runs/%s/enwiki-NS0-%s-ENTERPRISE-HTML.json.tar.gz", lastDate, lastDate), nil //nolint:lll
 }
 
-func ProcessWikipediaDump(ctx context.Context, config *ProcessDumpConfig, processArticle func(context.Context, Article) errors.E) errors.E {
+func ProcessWikipediaDump(
+	ctx context.Context, config *ProcessDumpConfig,
+	processArticle func(context.Context, Article) errors.E,
+) errors.E {
 	if config.UserAgent == "" {
 		return errors.New("user agent is a required configuration option")
 	}

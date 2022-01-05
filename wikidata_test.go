@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/tozd/go/errors"
+
 	"gitlab.com/tozd/go/mediawiki"
 )
 
@@ -28,7 +29,7 @@ func TestProcessWikidataDumpLatest(t *testing.T) {
 
 	err := mediawiki.ProcessWikidataDump(
 		ctx,
-		&mediawiki.ProcessDumpConfig{
+		&mediawiki.ProcessDumpConfig{ //nolint:exhaustivestruct
 			CacheDir:  cacheDir,
 			UserAgent: "Unit test user agent (https://gitlab.com/tozd/go/mediawiki)",
 		},
@@ -51,7 +52,7 @@ func TestProcessWikidataDumpExplicit(t *testing.T) {
 
 	errE := mediawiki.ProcessWikidataDump(
 		context.Background(),
-		&mediawiki.ProcessDumpConfig{
+		&mediawiki.ProcessDumpConfig{ //nolint:exhaustivestruct
 			URL:       wikidataTestDump,
 			CacheDir:  cacheDir,
 			UserAgent: "Unit test user agent (https://gitlab.com/tozd/go/mediawiki)",

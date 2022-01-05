@@ -14,7 +14,10 @@ const (
 	latestWikidataAll = "https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.bz2"
 )
 
-func ProcessWikidataDump(ctx context.Context, config *ProcessDumpConfig, processEntity func(context.Context, Entity) errors.E) errors.E {
+func ProcessWikidataDump(
+	ctx context.Context, config *ProcessDumpConfig,
+	processEntity func(context.Context, Entity) errors.E,
+) errors.E {
 	if config.UserAgent == "" {
 		return errors.New("user agent is a required configuration option")
 	}

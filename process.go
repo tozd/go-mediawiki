@@ -142,7 +142,7 @@ func getDumpJSONs(
 		defer timer.Stop()
 	}
 
-	countingReader := &x.CountingReader{Reader: compressedReader} //nolint:exhaustivestruct
+	countingReader := &x.CountingReader{Reader: compressedReader}
 	ticker := x.NewTicker(ctx, countingReader, compressedSize, progressPrintRate)
 	defer ticker.Stop()
 	go func() {
