@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -53,6 +52,7 @@ type ProcessConfig struct {
 	ItemsProcessingThreads int
 	UserAgent              string
 	Process                func(context.Context, interface{}) errors.E
+	Progress               func(context.Context, x.Progress)
 	Item                   interface{}
 	DumpType               DumpType
 	Compression            Compression
@@ -152,7 +152,9 @@ func getDumpJSONs(
 				timer.Reset(staleReadTimeout)
 				compressedRead = progress.Count
 			}
-			fmt.Fprintf(os.Stderr, "Progress: %0.2f%%, ETA: %s\n", progress.Percent(), progress.Remaining().Truncate(time.Second)) //nolint:lll
+			if config.Progress != nil {
+				config.Progress(ctx, progress)
+			}
 		}
 	}()
 

@@ -69,6 +69,7 @@ func ProcessWikidataDump(
 		Process: func(ctx context.Context, i interface{}) errors.E {
 			return processEntity(ctx, *(i.(*Entity)))
 		},
+		Progress:    config.Progress,
 		Item:        &Entity{}, //nolint:exhaustivestruct
 		DumpType:    JSONArray,
 		Compression: BZIP2,

@@ -91,6 +91,7 @@ func ProcessWikipediaDump(
 		Process: func(ctx context.Context, i interface{}) errors.E {
 			return processArticle(ctx, *(i.(*Article)))
 		},
+		Progress:    config.Progress,
 		Item:        &Article{}, //nolint:exhaustivestruct
 		DumpType:    NDJSON,
 		Compression: GZIP,
