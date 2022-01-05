@@ -14,7 +14,7 @@ const (
 	latestWikidataAll = "https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.bz2"
 )
 
-func ProcessWikidataDump(ctx context.Context, config *ProcessDumpConfig, processEntity func(Entity) errors.E) errors.E {
+func ProcessWikidataDump(ctx context.Context, config *ProcessDumpConfig, processEntity func(context.Context, Entity) errors.E) errors.E {
 	if config.UserAgent == "" {
 		return errors.New("user agent is a required configuration option")
 	}
@@ -63,8 +63,8 @@ func ProcessWikidataDump(ctx context.Context, config *ProcessDumpConfig, process
 		JSONDecodeThreads:      config.JSONDecodeThreads,
 		ItemsProcessingThreads: config.ItemsProcessingThreads,
 		UserAgent:              config.UserAgent,
-		Process: func(i interface{}) errors.E {
-			return processEntity(*(i.(*Entity)))
+		Process: func(ctx context.Context, i interface{}) errors.E {
+			return processEntity(ctx, *(i.(*Entity)))
 		},
 		Item:        &Entity{}, //nolint:exhaustivestruct
 		DumpType:    JSONArray,

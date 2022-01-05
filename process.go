@@ -52,7 +52,7 @@ type ProcessConfig struct {
 	JSONDecodeThreads      int
 	ItemsProcessingThreads int
 	UserAgent              string
-	Process                func(interface{}) errors.E
+	Process                func(context.Context, interface{}) errors.E
 	Item                   interface{}
 	DumpType               DumpType
 	Compression            Compression
@@ -272,7 +272,7 @@ func processItems(
 			if !ok {
 				return
 			}
-			err := config.Process(i)
+			err := config.Process(ctx, i)
 			if err != nil {
 				errs <- err
 				return

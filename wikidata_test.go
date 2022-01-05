@@ -32,7 +32,7 @@ func TestProcessWikidataDumpLatest(t *testing.T) {
 			CacheDir:  cacheDir,
 			UserAgent: "Unit test user agent (https://gitlab.com/tozd/go/mediawiki)",
 		},
-		func(a mediawiki.Entity) errors.E {
+		func(_ context.Context, a mediawiki.Entity) errors.E {
 			atomic.AddInt64(&entityCounter, int64(1))
 			cancel()
 			return nil
@@ -56,7 +56,7 @@ func TestProcessWikidataDumpExplicit(t *testing.T) {
 			CacheDir:  cacheDir,
 			UserAgent: "Unit test user agent (https://gitlab.com/tozd/go/mediawiki)",
 		},
-		func(a mediawiki.Entity) errors.E {
+		func(_ context.Context, a mediawiki.Entity) errors.E {
 			atomic.AddInt64(&entityCounter, int64(1))
 			return nil
 		},

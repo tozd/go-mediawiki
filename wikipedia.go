@@ -44,7 +44,7 @@ func latestWikipediaRun(client *retryablehttp.Client, userAgent string) (string,
 	return fmt.Sprintf("https://dumps.wikimedia.org/other/enterprise_html/runs/%s/enwiki-NS0-%s-ENTERPRISE-HTML.json.tar.gz", lastDate, lastDate), nil
 }
 
-func ProcessWikipediaDump(ctx context.Context, config *ProcessDumpConfig, processArticle func(Article) errors.E) errors.E {
+func ProcessWikipediaDump(ctx context.Context, config *ProcessDumpConfig, processArticle func(context.Context, Article) errors.E) errors.E {
 	if config.UserAgent == "" {
 		return errors.New("user agent is a required configuration option")
 	}
@@ -85,8 +85,8 @@ func ProcessWikipediaDump(ctx context.Context, config *ProcessDumpConfig, proces
 		JSONDecodeThreads:      config.JSONDecodeThreads,
 		ItemsProcessingThreads: config.ItemsProcessingThreads,
 		UserAgent:              config.UserAgent,
-		Process: func(i interface{}) errors.E {
-			return processArticle(*(i.(*Article)))
+		Process: func(ctx context.Context, i interface{}) errors.E {
+			return processArticle(ctx, *(i.(*Article)))
 		},
 		Item:        &Article{}, //nolint:exhaustivestruct
 		DumpType:    NDJSON,
