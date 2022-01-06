@@ -92,3 +92,6 @@ issues:
     - path: .*_test\.go
       linters:
         - dupl
+    - path: entity_test\.go
+      linters:
+        - testpackage

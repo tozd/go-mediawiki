@@ -490,10 +490,7 @@ func (v DataValue) MarshalJSON() ([]byte, error) {
 		return json.Marshal(struct {
 			Type  string
 			Value t
-		}{"wikibase-entityid", t{
-			value.Type,
-			value.ID,
-		}})
+		}{"wikibase-entityid", t(value)})
 	case GlobeCoordinateValue:
 		type t struct {
 			Latitude  float64
@@ -504,12 +501,7 @@ func (v DataValue) MarshalJSON() ([]byte, error) {
 		return json.Marshal(struct {
 			Type  string
 			Value t
-		}{"globecoordinate", t{
-			value.Latitude,
-			value.Longitude,
-			value.Precision,
-			value.Globe,
-		}})
+		}{"globecoordinate", t(value)})
 	case MonolingualTextValue:
 		return json.Marshal(struct {
 			Type  string
