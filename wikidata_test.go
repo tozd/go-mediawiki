@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gitlab.com/tozd/go/errors"
 
 	"gitlab.com/tozd/go/mediawiki"
@@ -69,6 +70,6 @@ func TestProcessWikidataDumpExplicit(t *testing.T) {
 	assert.FileExists(t, dumpPath)
 
 	info, err := os.Stat(dumpPath)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, int64(209393), info.Size())
 }
