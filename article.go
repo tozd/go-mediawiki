@@ -94,6 +94,7 @@ type License struct {
 	URL        string `json:"url"`
 }
 
+// Article is a Wikimedia Enterprise HTML dump article.
 type Article struct {
 	Name               string
 	Identifier         int64

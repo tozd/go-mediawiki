@@ -3,6 +3,7 @@ package mediawiki
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"regexp"
 	"strconv"
@@ -352,6 +353,10 @@ const (
 	Julian
 )
 
+// MarshalJSON implements json.Marshaler interface for CalendarModel.
+//
+// Go enumeration values are converted to corresponding calendar Wikidata URIs.
+// Those might be different (but equivalent) than what it was in the source dump.
 func (t CalendarModel) MarshalJSON() ([]byte, error) {
 	buffer := bytes.NewBufferString(`"`)
 	switch t {
@@ -364,6 +369,9 @@ func (t CalendarModel) MarshalJSON() ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
+// UnmarshalJSON implements json.Unmarshaler interface for CalendarModel.
+//
+// It normalizes calendar Wikidata URIs to Go enumeration values.
 func (t *CalendarModel) UnmarshalJSON(b []byte) error {
 	var s string
 	err := json.Unmarshal(b, &s)
@@ -385,6 +393,10 @@ func (t *CalendarModel) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// ErrorValue represents an error with the value.
+//
+// When JSON representation contains an error, only error is provided
+// as a Go value because any other field might be fail to parse.
 type ErrorValue string
 
 type StringValue string
@@ -413,16 +425,31 @@ type QuantityValue struct {
 	Unit       string
 }
 
+// TimeValue represents a time value.
+//
+// While Time is a regular Go Time struct with nanoseconds precision,
+// its real precision is available by Precision.
+//
+// Note that Wikidata uses historical numbering, in which year 0 is undefined,
+// but Go uses astronomical numbering.
 type TimeValue struct {
 	Time      time.Time
 	Precision TimePrecision
 	Calendar  CalendarModel
 }
 
+// DataValue provides parsed value as Go value in Value.
+//
+// Value can be one of ErrorValue, StringValue, WikiBaseEntityIDValue,
+// GlobeCoordinateValue, MonolingualTextValue, QuantityValue, and TimeValue.
 type DataValue struct {
 	Value interface{}
 }
 
+// MarshalJSON implements json.Marshaler interface for MarshalJSON.
+//
+// JSON representation of Go values might be different (but equivalent)
+// than what it was in the source dump.
 func (v DataValue) MarshalJSON() ([]byte, error) {
 	return nil, nil
 }
@@ -474,6 +501,9 @@ func parseTime(t string) (time.Time, errors.E) {
 	return time.Date(int(year), time.Month(month), int(day), int(hour), int(minute), int(second), 0, time.UTC), nil
 }
 
+// UnmarshalJSON implements json.Unmarshaler interface for DataValue.
+//
+// It normalizes JSON representation to Go values.
 func (v *DataValue) UnmarshalJSON(b []byte) error {
 	var t struct {
 		Type  string
@@ -628,6 +658,7 @@ type Statement struct {
 	References      []Reference
 }
 
+// Entity is a Wikidata entities JSON dump entity.
 type Entity struct {
 	ID           string
 	Type         EntityType
