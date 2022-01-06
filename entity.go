@@ -545,6 +545,8 @@ func parseTime(t string) (time.Time, errors.E) {
 		// Wikidata uses historical numbering, in which year 0 is undefined,
 		// but Go uses astronomical numbering, so we add 1 here.
 		year++
+	} else if year == 0 {
+		return time.Time{}, errors.New("year cannot be 0")
 	}
 	month, err := strconv.ParseInt(match[2], 10, 0) //nolint:gomnd
 	if err != nil {
