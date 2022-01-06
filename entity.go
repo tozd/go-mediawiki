@@ -446,12 +446,98 @@ type DataValue struct {
 	Value interface{}
 }
 
+func formatTime(t time.Time, p TimePrecision) string {
+	t = t.UTC()
+	year := t.Year()
+	if year < 1 {
+		// Wikidata uses historical numbering, in which year 0 is undefined,
+		// but Go uses astronomical numbering, so we subtract 1 here.
+		year--
+	}
+	month := t.Month()
+	if p < Month {
+		// Wikidata uses 0 when month is unknown or insignificant.
+		month = 0
+	}
+	day := t.Day()
+	if p < Day {
+		// Wikidata uses 0 when day is unknown or insignificant.
+		day = 0
+	}
+	return fmt.Sprintf("%+05d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, t.Hour(), t.Minute(), t.Second())
+}
+
 // MarshalJSON implements json.Marshaler interface for MarshalJSON.
 //
 // JSON representation of Go values might be different (but equivalent)
 // than what it was in the source dump.
 func (v DataValue) MarshalJSON() ([]byte, error) {
-	return nil, nil
+	switch value := v.Value.(type) {
+	case ErrorValue:
+		return json.Marshal(struct {
+			Error string
+		}{string(value)})
+	case StringValue:
+		return json.Marshal(struct {
+			Type  string
+			Value string
+		}{"string", string(value)})
+	case WikiBaseEntityIDValue:
+		type t struct {
+			Type WikiBaseEntityType `json:"entity-type"`
+			ID   string
+		}
+		return json.Marshal(struct {
+			Type  string
+			Value t
+		}{"wikibase-entityid", t{
+			value.Type,
+			value.ID,
+		}})
+	case GlobeCoordinateValue:
+		type t struct {
+			Latitude  float64
+			Longitude float64
+			Precision float64
+			Globe     string
+		}
+		return json.Marshal(struct {
+			Type  string
+			Value t
+		}{"globecoordinate", t{
+			value.Latitude,
+			value.Longitude,
+			value.Precision,
+			value.Globe,
+		}})
+	case MonolingualTextValue:
+		return json.Marshal(struct {
+			Type  string
+			Value MonolingualTextValue
+		}{"monolingualtext", value})
+	case QuantityValue:
+		return json.Marshal(struct {
+			Type  string
+			Value QuantityValue
+		}{"quantity", value})
+	case TimeValue:
+		type t struct {
+			Time      string
+			Precision TimePrecision
+			Calendar  CalendarModel `json:"calendarmodel"`
+		}
+		formatedTime := formatTime(value.Time, value.Precision)
+		return json.Marshal(struct {
+			Type  string
+			Value t
+		}{"time", t{
+			formatedTime,
+			value.Precision,
+			value.Calendar,
+		}})
+	default:
+		return nil, errors.Errorf(`unknown data value type: %+v`, v.Value)
+	}
 }
 
 func parseTime(t string) (time.Time, errors.E) {
