@@ -249,9 +249,13 @@ func decodeJSONs(
 				return
 			}
 			e := reflect.New(itemType).Interface()
-			err := x.UnmarshalWithoutUnknownFields(raw, &e)
-			if err != nil {
-				errs <- errors.Wrapf(err, "cannot decode json: %s", raw)
+			errE := x.UnmarshalWithoutUnknownFields(raw, &e)
+			if errE != nil {
+				errs <- errors.Wrapf(errE, "cannot decode json: %s", raw)
+				return
+			}
+			if err := ctx.Err(); err != nil {
+				errs <- errors.WithStack(err)
 				return
 			}
 			output <- e
@@ -382,7 +386,7 @@ WAIT:
 		// We cancel the context on any error, but we also store it.
 		// We also wait for all goroutines to return. The expectation
 		// is that they return all when they are all successful, or
-		// when there was an error and we cancelled the context.
+		// when there was an error and we canceled the context.
 		select {
 		case err := <-errs:
 			allErrors = append(allErrors, err)
