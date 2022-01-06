@@ -19,11 +19,7 @@ const (
 	Property
 )
 
-var TimeRegex *regexp.Regexp
-
-func init() {
-	TimeRegex = regexp.MustCompile(`^([+-]\d{4,})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$`)
-}
+var timeRegex = regexp.MustCompile(`^([+-]\d{4,})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$`)
 
 func (t EntityType) MarshalJSON() ([]byte, error) {
 	buffer := bytes.NewBufferString(`"`)
@@ -432,7 +428,7 @@ func (v DataValue) MarshalJSON() ([]byte, error) {
 }
 
 func parseTime(t string) (time.Time, errors.E) {
-	match := TimeRegex.FindStringSubmatch(t)
+	match := timeRegex.FindStringSubmatch(t)
 	if match == nil {
 		return time.Time{}, errors.Errorf(`unable to parse time "%s"`, t)
 	}
