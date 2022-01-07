@@ -186,7 +186,10 @@ func getDumpJSONs(
 			_, err = decompressedReader.(*tar.Reader).Next()
 			if err != nil {
 				// When there are no more files in gzip/tar, Next returns io.EOF.
-				if !errors.Is(err, io.EOF) {
+				if errors.Is(err, io.EOF) {
+					// Make sure the whole file is written out to compressedFile.
+					_, _ = io.Copy(io.Discard, compressedReader)
+				} else {
 					errs <- errors.WithStack(err)
 				}
 				return
@@ -233,6 +236,9 @@ func getDumpJSONs(
 			break
 		}
 	}
+
+	// Make sure the whole file is written out to compressedFile.
+	_, _ = io.Copy(io.Discard, compressedReader)
 }
 
 func decodeJSONs(
