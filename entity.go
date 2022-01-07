@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"gitlab.com/tozd/go/errors"
@@ -402,27 +403,63 @@ type ErrorValue string
 type StringValue string
 
 type WikiBaseEntityIDValue struct {
-	Type WikiBaseEntityType
-	ID   string
+	Type WikiBaseEntityType `json:"entity-type"`
+	ID   string             `json:"id"`
 }
 
 type GlobeCoordinateValue struct {
-	Latitude  float64
-	Longitude float64
-	Precision float64
-	Globe     string
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	Precision float64 `json:"precision"`
+	Globe     string  `json:"globe"`
 }
 
 type MonolingualTextValue struct {
-	Language string
-	Text     string
+	Language string `json:"language"`
+	Text     string `json:"text"`
+}
+
+// Amount is an arbitrary precision number and extends big.Rat.
+type Amount struct {
+	big.Rat
+}
+
+// MarshalJSON implements json.Marshaler interface for Amount.
+func (a Amount) MarshalJSON() ([]byte, error) {
+	// TODO: Figure out exact precision required.
+	s := a.FloatString(1000) //nolint:gomnd
+	s = strings.TrimRight(s, "0")
+	s = strings.TrimRight(s, ".")
+	b := bytes.Buffer{}
+	b.WriteString(`"`)
+	if a.Sign() >= 0 {
+		// Sign is required always.
+		b.WriteString("+")
+	}
+	b.WriteString(s)
+	b.WriteString(`"`)
+	return b.Bytes(), nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler interface for Amount.
+func (a *Amount) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	_, ok := a.SetString(s)
+	if !ok {
+		return errors.Errorf("cannot parse amount into number: %s", s)
+	}
+	return nil
 }
 
 type QuantityValue struct {
-	Amount     big.Float
-	UpperBound *big.Float `json:"upperBound"`
-	LowerBound *big.Float `json:"lowerBound"`
-	Unit       string
+	Amount     Amount  `json:"amount"`
+	UpperBound *Amount `json:"upperBound,omitempty"`
+	LowerBound *Amount `json:"lowerBound,omitempty"`
+	Unit       string  `json:"unit"`
 }
 
 // TimeValue represents a time value.
@@ -433,17 +470,58 @@ type QuantityValue struct {
 // Note that Wikidata uses historical numbering, in which year 0 is undefined,
 // but Go uses astronomical numbering.
 type TimeValue struct {
-	Time      time.Time
-	Precision TimePrecision
-	Calendar  CalendarModel
+	Time      time.Time     `json:"time"`
+	Precision TimePrecision `json:"precision"`
+	Calendar  CalendarModel `json:"calendar"`
+}
+
+// MarshalJSON implements json.Marshaler interface for TimeValue.
+func (v TimeValue) MarshalJSON() ([]byte, error) {
+	type t struct {
+		Time      string        `json:"time"`
+		Precision TimePrecision `json:"precision"`
+		Calendar  CalendarModel `json:"calendarmodel"`
+	}
+	formatedTime := formatTime(v.Time, v.Precision)
+	b, err := json.Marshal(t{
+		formatedTime,
+		v.Precision,
+		v.Calendar,
+	})
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return b, err
+}
+
+// UnmarshalJSON implements json.Unmarshaler interface for TimeValue.
+func (v *TimeValue) UnmarshalJSON(b []byte) error {
+	type t struct {
+		Time      string        `json:"time"`
+		Precision TimePrecision `json:"precision"`
+		Calendar  CalendarModel `json:"calendarmodel"`
+	}
+	var d t
+	err := json.Unmarshal(b, &d)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	v.Time, err = parseTime(d.Time)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	v.Precision = d.Precision
+	v.Calendar = d.Calendar
+	return nil
 }
 
 // DataValue provides parsed value as Go value in Value.
 //
 // Value can be one of ErrorValue, StringValue, WikiBaseEntityIDValue,
-// GlobeCoordinateValue, MonolingualTextValue, QuantityValue, and TimeValue.
+// GlobeCoordinateValue, MonolingualTextValue, QuantityValue, and TimeValue,
+// or nil which is generally used with SomeValue and NoValue.
 type DataValue struct {
-	Value interface{}
+	Value interface{} `json:"value"`
 }
 
 func formatTime(t time.Time, p TimePrecision) string {
@@ -467,66 +545,74 @@ func formatTime(t time.Time, p TimePrecision) string {
 	return fmt.Sprintf("%+05d-%02d-%02dT%02d:%02d:%02dZ", year, month, day, t.Hour(), t.Minute(), t.Second())
 }
 
-// MarshalJSON implements json.Marshaler interface for MarshalJSON.
+// MarshalJSON implements json.Marshaler interface for DataValue.
 //
 // JSON representation of Go values might be different (but equivalent)
 // than what it was in the source dump.
 func (v DataValue) MarshalJSON() ([]byte, error) {
 	switch value := v.Value.(type) {
 	case ErrorValue:
-		return json.Marshal(struct {
-			Error string
-		}{string(value)})
+		b, err := json.Marshal(struct {
+			Error ErrorValue `json:"error"`
+		}{value})
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		return b, err
 	case StringValue:
-		return json.Marshal(struct {
-			Type  string
-			Value string
-		}{"string", string(value)})
+		b, err := json.Marshal(struct {
+			Type  string      `json:"type"`
+			Value StringValue `json:"value"`
+		}{"string", value})
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		return b, err
 	case WikiBaseEntityIDValue:
-		type t struct {
-			Type WikiBaseEntityType `json:"entity-type"`
-			ID   string
+		b, err := json.Marshal(struct {
+			Type  string                `json:"type"`
+			Value WikiBaseEntityIDValue `json:"value"`
+		}{"wikibase-entityid", value})
+		if err != nil {
+			return nil, errors.WithStack(err)
 		}
-		return json.Marshal(struct {
-			Type  string
-			Value t
-		}{"wikibase-entityid", t(value)})
+		return b, err
 	case GlobeCoordinateValue:
-		type t struct {
-			Latitude  float64
-			Longitude float64
-			Precision float64
-			Globe     string
+		b, err := json.Marshal(struct {
+			Type  string               `json:"type"`
+			Value GlobeCoordinateValue `json:"value"`
+		}{"globecoordinate", value})
+		if err != nil {
+			return nil, errors.WithStack(err)
 		}
-		return json.Marshal(struct {
-			Type  string
-			Value t
-		}{"globecoordinate", t(value)})
+		return b, err
 	case MonolingualTextValue:
-		return json.Marshal(struct {
-			Type  string
-			Value MonolingualTextValue
+		b, err := json.Marshal(struct {
+			Type  string               `json:"type"`
+			Value MonolingualTextValue `json:"value"`
 		}{"monolingualtext", value})
-	case QuantityValue:
-		return json.Marshal(struct {
-			Type  string
-			Value QuantityValue
-		}{"quantity", value})
-	case TimeValue:
-		type t struct {
-			Time      string
-			Precision TimePrecision
-			Calendar  CalendarModel `json:"calendarmodel"`
+		if err != nil {
+			return nil, errors.WithStack(err)
 		}
-		formatedTime := formatTime(value.Time, value.Precision)
-		return json.Marshal(struct {
-			Type  string
-			Value t
-		}{"time", t{
-			formatedTime,
-			value.Precision,
-			value.Calendar,
-		}})
+		return b, err
+	case QuantityValue:
+		b, err := json.Marshal(struct {
+			Type  string        `json:"type"`
+			Value QuantityValue `json:"value"`
+		}{"quantity", value})
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		return b, err
+	case TimeValue:
+		b, err := json.Marshal(struct {
+			Type  string    `json:"type"`
+			Value TimeValue `json:"value"`
+		}{"time", value})
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		return b, err
 	default:
 		return nil, errors.Errorf(`unknown data value type: %+v`, v.Value)
 	}
@@ -586,8 +672,8 @@ func parseTime(t string) (time.Time, errors.E) {
 // It normalizes JSON representation to Go values.
 func (v *DataValue) UnmarshalJSON(b []byte) error {
 	var t struct {
-		Type  string
-		Error string
+		Type  string `json:"type"`
+		Error string `json:"error"`
 	}
 	err := json.Unmarshal(b, &t)
 	if err != nil {
@@ -600,23 +686,24 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 	switch t.Type {
 	case "string":
 		var t struct {
-			Type  string
-			Value string
+			Type  string      `json:"type"`
+			Value StringValue `json:"value"`
 		}
 		err := x.UnmarshalWithoutUnknownFields(b, &t)
 		if err != nil {
 			return err
 		}
-		v.Value = StringValue(t.Value)
+		v.Value = t.Value
 	case "wikibase-entityid":
 		var t struct {
-			Type  string
+			Type string `json:"type"`
+			// We do not use WikiBaseEntityIDValue because of extra fields.
 			Value struct {
 				Type WikiBaseEntityType `json:"entity-type"`
-				ID   string
+				ID   string             `json:"id"`
 				// Not available for all entity types. Not recommended to be used. We ignore it.
 				NumericID int `json:"numeric-id"`
-			}
+			} `json:"value"`
 		}
 		err := x.UnmarshalWithoutUnknownFields(b, &t)
 		if err != nil {
@@ -628,15 +715,16 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 		}
 	case "globecoordinate":
 		var t struct {
-			Type  string
+			Type string `json:"type"`
+			// We do not use GlobeCoordinateValue because of extra fields.
 			Value struct {
-				Latitude  float64
-				Longitude float64
+				Latitude  float64 `json:"latitude"`
+				Longitude float64 `json:"longitude"`
 				// Altitude is deprecated and no longer used. We ignore it.
-				Altitude  float64
-				Precision float64
-				Globe     string
-			}
+				Altitude  float64 `json:"altitude"`
+				Precision float64 `json:"precision"`
+				Globe     string  `json:"globe"`
+			} `json:"value"`
 		}
 		err := x.UnmarshalWithoutUnknownFields(b, &t)
 		if err != nil {
@@ -650,8 +738,8 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 		}
 	case "monolingualtext":
 		var t struct {
-			Type  string
-			Value MonolingualTextValue
+			Type  string               `json:"type"`
+			Value MonolingualTextValue `json:"value"`
 		}
 		err := x.UnmarshalWithoutUnknownFields(b, &t)
 		if err != nil {
@@ -660,8 +748,8 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 		v.Value = t.Value
 	case "quantity":
 		var t struct {
-			Type  string
-			Value QuantityValue
+			Type  string        `json:"type"`
+			Value QuantityValue `json:"value"`
 		}
 		err := x.UnmarshalWithoutUnknownFields(b, &t)
 		if err != nil {
@@ -670,18 +758,19 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 		v.Value = t.Value
 	case "time":
 		var t struct {
-			Type  string
+			Type string `json:"type"`
+			// We do not use TimeValue because of extra fields.
 			Value struct {
-				Time      string
-				Precision TimePrecision
+				Time      string        `json:"time"`
+				Precision TimePrecision `json:"precision"`
 				Calendar  CalendarModel `json:"calendarmodel"`
 				// Defined and declared not used, but sometimes still set. We ignore it.
-				Timezone int64
+				Timezone int64 `json:"timezone"`
 				// Defined and declared not used, but sometimes still set. We ignore it.
-				Before int64
+				Before int64 `json:"before"`
 				// Defined and declared not used, but sometimes still set. We ignore it.
-				After int64
-			}
+				After int64 `json:"after"`
+			} `json:"value"`
 		}
 		err := x.UnmarshalWithoutUnknownFields(b, &t)
 		if err != nil {
@@ -703,50 +792,50 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 }
 
 type LanguageValue struct {
-	Language string
-	Value    string
+	Language string `json:"language"`
+	Value    string `json:"value"`
 }
 
 type SiteLink struct {
-	Site   string
-	Title  string
-	Badges []string
-	URL    string
+	Site   string   `json:"site"`
+	Title  string   `json:"title"`
+	Badges []string `json:"badges,omitempty"`
+	URL    string   `json:"url,omitempty"`
 }
 
 type Snak struct {
-	Hash      string
-	SnakType  SnakType `json:"snaktype"`
-	Property  string
-	DataType  DataType  `json:"datatype"`
-	DataValue DataValue `json:"datavalue"`
+	Hash      string     `json:"hash,omitempty"`
+	SnakType  SnakType   `json:"snaktype"`
+	Property  string     `json:"property"`
+	DataType  DataType   `json:"datatype"`
+	DataValue *DataValue `json:"datavalue,omitempty"`
 }
 
 type Reference struct {
-	Hash       string
-	Snaks      map[string][]Snak
-	SnaksOrder []string `json:"snaks-order"`
+	Hash       string            `json:"hash,omitempty"`
+	Snaks      map[string][]Snak `json:"snaks,omitempty"`
+	SnaksOrder []string          `json:"snaks-order,omitempty"`
 }
 
 type Statement struct {
-	ID              string
-	Type            StatementType
-	MainSnak        Snak `json:"mainsnak"`
-	Rank            StatementRank
-	Qualifiers      map[string][]Snak
-	QualifiersOrder []string `json:"qualifiers-order"`
-	References      []Reference
+	ID              string            `json:"id"`
+	Type            StatementType     `json:"type"`
+	MainSnak        Snak              `json:"mainsnak"`
+	Rank            StatementRank     `json:"rank"`
+	Qualifiers      map[string][]Snak `json:"qualifiers,omitempty"`
+	QualifiersOrder []string          `json:"qualifiers-order,omitempty"`
+	References      []Reference       `json:"references,omitempty"`
 }
 
 // Entity is a Wikidata entities JSON dump entity.
 type Entity struct {
-	ID           string
-	Type         EntityType
-	DataType     string `json:"datatype"`
-	Labels       map[string]LanguageValue
-	Descriptions map[string]LanguageValue
-	Aliases      map[string][]LanguageValue
-	Claims       map[string][]Statement
-	SiteLinks    map[string]SiteLink
-	LastRevID    int64 `json:"lastrevid"`
+	ID           string                     `json:"id"`
+	Type         EntityType                 `json:"type"`
+	DataType     *DataType                  `json:"datatype,omitempty"`
+	Labels       map[string]LanguageValue   `json:"labels,omitempty"`
+	Descriptions map[string]LanguageValue   `json:"descriptions,omitempty"`
+	Aliases      map[string][]LanguageValue `json:"aliases,omitempty"`
+	Claims       map[string][]Statement     `json:"claims,omitempty"`
+	SiteLinks    map[string]SiteLink        `json:"sitelinks,omitempty"`
+	LastRevID    int64                      `json:"lastrevid"`
 }

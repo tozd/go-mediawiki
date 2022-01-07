@@ -1,6 +1,7 @@
 package mediawiki
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,6 +24,27 @@ func TestTime(t *testing.T) {
 			require.NoError(t, err)
 			s := formatTime(p, test.precision)
 			assert.Equal(t, test.time, s)
+		})
+	}
+}
+
+func TestAmount(t *testing.T) {
+	tests := []string{
+		"+123.34",
+		"-123.34",
+		"+0.3333333333333333333333333333333333333333333333333333333333333333333333333333",
+		"-2.0000000000000000000000000000000000000000000000000000000000000000000000000001",
+		"+0",
+	}
+	for _, test := range tests {
+		t.Run(test, func(t *testing.T) {
+			in := `"` + test + `"`
+			var a Amount
+			err := json.Unmarshal([]byte(in), &a)
+			require.NoError(t, err)
+			out, err := json.Marshal(a)
+			require.NoError(t, err)
+			assert.Equal(t, in, string(out))
 		})
 	}
 }

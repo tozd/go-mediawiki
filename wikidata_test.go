@@ -2,6 +2,7 @@ package mediawiki_test
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path"
 	"path/filepath"
@@ -37,6 +38,23 @@ func TestProcessWikidataDumpLatest(t *testing.T) {
 		func(_ context.Context, a mediawiki.Entity) errors.E {
 			atomic.AddInt64(&entityCounter, int64(1))
 			cancel()
+			b, err := json.Marshal(a)
+			if err != nil {
+				return errors.Wrapf(err, "cannot marshal json: %+v", a)
+			}
+			var c mediawiki.Entity
+			err = json.Unmarshal(b, &c)
+			if err != nil {
+				return errors.Wrapf(err, "cannot unmarshal json: %s", string(b))
+			}
+			d, err := json.Marshal(c)
+			if err != nil {
+				return errors.Wrapf(err, "cannot marshal json again: %+v", c)
+			}
+			bStr := string(b)
+			dStr := string(d)
+			// We have to use JSONEq instead of Equal so that empty slice is equal to nil slice.
+			assert.JSONEq(t, bStr, dStr)
 			return nil
 		},
 	)
@@ -60,6 +78,23 @@ func TestProcessWikidataDumpExplicit(t *testing.T) {
 		},
 		func(_ context.Context, a mediawiki.Entity) errors.E {
 			atomic.AddInt64(&entityCounter, int64(1))
+			b, err := json.Marshal(a)
+			if err != nil {
+				return errors.Wrapf(err, "cannot marshal json: %+v", a)
+			}
+			var c mediawiki.Entity
+			err = json.Unmarshal(b, &c)
+			if err != nil {
+				return errors.Wrapf(err, "cannot unmarshal json: %s", string(b))
+			}
+			d, err := json.Marshal(c)
+			if err != nil {
+				return errors.Wrapf(err, "cannot marshal json again: %+v", c)
+			}
+			bStr := string(b)
+			dStr := string(d)
+			// We have to use JSONEq instead of Equal so that empty slice is equal to nil slice.
+			assert.JSONEq(t, bStr, dStr)
 			return nil
 		},
 	)
