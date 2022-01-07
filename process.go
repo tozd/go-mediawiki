@@ -211,11 +211,12 @@ func getDumpJSONs(
 				errs <- errors.WithStack(err)
 				return
 			}
-			if err = ctx.Err(); err != nil {
-				errs <- errors.WithStack(err)
+			select {
+			case <-ctx.Done():
+				errs <- errors.WithStack(ctx.Err())
 				return
+			case output <- raw:
 			}
-			output <- raw
 		}
 
 		if config.DumpType == JSONArray {
@@ -254,11 +255,12 @@ func decodeJSONs(
 				errs <- errors.Wrapf(errE, "cannot decode json: %s", raw)
 				return
 			}
-			if err := ctx.Err(); err != nil {
-				errs <- errors.WithStack(err)
+			select {
+			case <-ctx.Done():
+				errs <- errors.WithStack(ctx.Err())
 				return
+			case output <- e:
 			}
-			output <- e
 		case <-ctx.Done():
 			errs <- errors.WithStack(ctx.Err())
 			return
