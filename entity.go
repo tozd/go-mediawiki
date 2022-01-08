@@ -778,12 +778,13 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 		}
 		parsedTime, err := parseTime(t.Value.Time)
 		if err != nil {
-			return err
-		}
-		v.Value = TimeValue{
-			Time:      parsedTime,
-			Precision: t.Value.Precision,
-			Calendar:  t.Value.Calendar,
+			v.Value = ErrorValue(err.Error())
+		} else {
+			v.Value = TimeValue{
+				Time:      parsedTime,
+				Precision: t.Value.Precision,
+				Calendar:  t.Value.Calendar,
+			}
 		}
 	default:
 		return errors.Errorf(`unknown data value type "%s": %s`, t.Type, string(b))
