@@ -9,7 +9,7 @@ import (
 
 // ProcessDumpConfig is a configuration for high-level Process*Dump functions.
 //
-// URL and UserAgent are required.
+// UserAgent is required.
 type ProcessDumpConfig struct {
 	URL                    string
 	CacheDir               string
