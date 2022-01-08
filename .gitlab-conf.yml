@@ -44,7 +44,7 @@ project:
   # The default branch name. Type: string
   default_branch: main
   # Short project description. Type: string
-  description: Utilities for processing Wikipedia dumps in Go. https://pkg.go.dev/gitlab.com/tozd/go/mediawiki
+  description: Utilities for processing Wikipedia and Wikidata dumps in Go. https://pkg.go.dev/gitlab.com/tozd/go/mediawiki
   # Disable email notifications. Type: boolean
   emails_disabled: false
   # The classification label for the project. Type: string

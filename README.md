@@ -1,11 +1,11 @@
-# Utilities for processing Wikipedia dumps in Go
+# Utilities for processing Wikipedia and Wikidata dumps in Go
 
 [![pkg.go.dev](https://pkg.go.dev/badge/gitlab.com/tozd/go/mediawiki)](https://pkg.go.dev/gitlab.com/tozd/go/mediawiki)
 [![Go Report Card](https://goreportcard.com/badge/gitlab.com/tozd/go/mediawiki)](https://goreportcard.com/report/gitlab.com/tozd/go/mediawiki)
 [![pipeline status](https://gitlab.com/tozd/go/mediawiki/badges/main/pipeline.svg?ignore_skipped=true)](https://gitlab.com/tozd/go/mediawiki/-/pipelines)
 [![coverage report](https://gitlab.com/tozd/go/mediawiki/badges/main/coverage.svg)](https://gitlab.com/tozd/go/mediawiki/-/graphs/main/charts)
 
-A Go package providing utilities for processing Wikipedia dumps.
+A Go package providing utilities for processing Wikipedia and Wikidata dumps.
 
 Features:
 
