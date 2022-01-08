@@ -29,7 +29,7 @@ func ProcessWikidataDump(
 	} else {
 		client = defaultClient
 	}
-	var url, cacheDir, cacheGlob string
+	var url, cacheGlob string
 	var cacheFilename func(*http.Response) (string, errors.E)
 	if config.URL != "" {
 		url = config.URL
@@ -53,14 +53,9 @@ func ProcessWikidataDump(
 			return fmt.Sprintf("wikidata-%s-all.json.bz2", lastModified.UTC().Format("20060102")), nil
 		}
 	}
-	if config.CacheDir != "" {
-		cacheDir = config.CacheDir
-	} else {
-		cacheDir = "."
-	}
 	return Process(ctx, &ProcessConfig{
 		URL:                    url,
-		CacheDir:               cacheDir,
+		CacheDir:               config.CacheDir,
 		CacheGlob:              cacheGlob,
 		CacheFilename:          cacheFilename,
 		Client:                 client,

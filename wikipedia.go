@@ -59,30 +59,30 @@ func ProcessWikipediaDump(
 	} else {
 		client = defaultClient
 	}
-	var err errors.E
-	var url, cacheDir, cacheGlob string
+	var url, cacheGlob string
 	var cacheFilename func(*http.Response) (string, errors.E)
 	if config.URL != "" {
 		url = config.URL
+		filename := path.Base(url)
+		cacheGlob = filename
+		cacheFilename = func(_ *http.Response) (string, errors.E) {
+			return filename, nil
+		}
 	} else {
+		var err errors.E
 		url, err = latestWikipediaRun(client, config.UserAgent)
 		if err != nil {
 			return errors.Wrap(err, "unable to determine the latest English Wikipedia dump run")
 		}
-	}
-	filename := path.Base(url)
-	cacheGlob = filename
-	cacheFilename = func(_ *http.Response) (string, errors.E) {
-		return filename, nil
-	}
-	if config.CacheDir != "" {
-		cacheDir = config.CacheDir
-	} else {
-		cacheDir = "."
+		cacheGlob = "enwiki-NS0-*-ENTERPRISE-HTML.json.tar.gz"
+		filename := path.Base(url)
+		cacheFilename = func(_ *http.Response) (string, errors.E) {
+			return filename, nil
+		}
 	}
 	return Process(ctx, &ProcessConfig{
 		URL:                    url,
-		CacheDir:               cacheDir,
+		CacheDir:               config.CacheDir,
 		CacheGlob:              cacheGlob,
 		CacheFilename:          cacheFilename,
 		Client:                 client,
