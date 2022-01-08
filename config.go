@@ -7,6 +7,9 @@ import (
 	"gitlab.com/tozd/go/x"
 )
 
+// ProcessDumpConfig is a configuration for high-level Process*Dump functions.
+//
+// URL and UserAgent are required.
 type ProcessDumpConfig struct {
 	URL                    string
 	CacheDir               string

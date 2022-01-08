@@ -14,6 +14,8 @@ const (
 	latestWikidataAll = "https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.bz2"
 )
 
+// ProcessWikidataDump downloads (unless already cached), decompresses, decodes JSON,
+// and calls processEntity on every entity in a Wikidata entities JSON dump.
 func ProcessWikidataDump(
 	ctx context.Context, config *ProcessDumpConfig,
 	processEntity func(context.Context, Entity) errors.E,
@@ -71,7 +73,7 @@ func ProcessWikidataDump(
 		},
 		Progress:    config.Progress,
 		Item:        &Entity{}, //nolint:exhaustivestruct
-		DumpType:    JSONArray,
+		FileType:    JSONArray,
 		Compression: BZIP2,
 	})
 }

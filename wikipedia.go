@@ -44,6 +44,8 @@ func latestWikipediaRun(client *retryablehttp.Client, userAgent string) (string,
 	return fmt.Sprintf("https://dumps.wikimedia.org/other/enterprise_html/runs/%s/enwiki-NS0-%s-ENTERPRISE-HTML.json.tar.gz", lastDate, lastDate), nil //nolint:lll
 }
 
+// ProcessWikipediaDump downloads (unless already cached), decompresses, decodes JSON,
+// and calls processArticle on every article in a Wikimedia Enterprise HTML dump.
 func ProcessWikipediaDump(
 	ctx context.Context, config *ProcessDumpConfig,
 	processArticle func(context.Context, Article) errors.E,
@@ -93,7 +95,7 @@ func ProcessWikipediaDump(
 		},
 		Progress:    config.Progress,
 		Item:        &Article{}, //nolint:exhaustivestruct
-		DumpType:    NDJSON,
+		FileType:    NDJSON,
 		Compression: GZIPTar,
 	})
 }

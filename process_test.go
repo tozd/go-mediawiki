@@ -24,7 +24,7 @@ func TestCompression(t *testing.T) {
 	tests := []struct {
 		name        string
 		compression mediawiki.Compression
-		dumpType    mediawiki.DumpType
+		dumpType    mediawiki.FileType
 		items       int
 	}{
 		{"enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar", mediawiki.Tar, mediawiki.NDJSON, 10},
@@ -55,7 +55,7 @@ func TestCompression(t *testing.T) {
 					return nil
 				},
 				Item:        new(interface{}),
-				DumpType:    test.dumpType,
+				FileType:    test.dumpType,
 				Compression: test.compression,
 			})
 			assert.NoError(t, err)

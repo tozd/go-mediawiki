@@ -27,10 +27,10 @@ const (
 	staleReadTimeout  = 60 * time.Second
 )
 
-type DumpType int
+type FileType int
 
 const (
-	JSONArray DumpType = iota
+	JSONArray FileType = iota
 	NDJSON
 )
 
@@ -45,6 +45,9 @@ const (
 	GZIPTar
 )
 
+// ProcessConfig is a configuration for low-level Process function.
+//
+// URL, UserAgent, Process, Item, FileType, and Compression are required.
 type ProcessConfig struct {
 	URL                    string
 	CacheDir               string
@@ -58,11 +61,11 @@ type ProcessConfig struct {
 	Process                func(context.Context, interface{}) errors.E
 	Progress               func(context.Context, x.Progress)
 	Item                   interface{}
-	DumpType               DumpType
+	FileType               FileType
 	Compression            Compression
 }
 
-func getDumpJSONs(
+func getFileJSONs(
 	ctx context.Context, config *ProcessConfig, wg *sync.WaitGroup,
 	output chan<- json.RawMessage, errs chan<- errors.E,
 ) {
@@ -71,10 +74,14 @@ func getDumpJSONs(
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	matches, err := filepath.Glob(filepath.Join(config.CacheDir, config.CacheGlob))
-	if err != nil {
-		errs <- errors.WithStack(err)
-		return
+	var matches []string
+	var err error
+	if config.CacheDir != "" && config.CacheGlob != "" {
+		matches, err = filepath.Glob(filepath.Join(config.CacheDir, config.CacheGlob))
+		if err != nil {
+			errs <- errors.WithStack(err)
+			return
+		}
 	}
 
 	var compressedReader io.Reader
@@ -120,26 +127,30 @@ func getDumpJSONs(
 		}
 		defer downloadReader.Close()
 		compressedSize = downloadReader.Size()
-		filename, errE := config.CacheFilename(downloadReader.Response)
-		if errE != nil {
-			errs <- errE
-			return
-		}
-		p := filepath.Join(config.CacheDir, filename)
-		compressedFile, err := os.Create(p)
-		if err != nil {
-			errs <- errors.WithStack(err)
-			return
-		}
-		defer func() {
-			info, err := os.Stat(p)
-			if err != nil || downloadReader.Size() != info.Size() {
-				// Incomplete file. Delete.
-				_ = os.Remove(p)
+		if config.CacheDir != "" && config.CacheFilename != nil {
+			filename, errE := config.CacheFilename(downloadReader.Response)
+			if errE != nil {
+				errs <- errE
+				return
 			}
-		}()
-		defer compressedFile.Close()
-		compressedReader = io.TeeReader(downloadReader, compressedFile)
+			p := filepath.Join(config.CacheDir, filename)
+			compressedFile, err := os.Create(p)
+			if err != nil {
+				errs <- errors.WithStack(err)
+				return
+			}
+			defer func() {
+				info, err := os.Stat(p)
+				if err != nil || downloadReader.Size() != info.Size() {
+					// Incomplete file. Delete.
+					_ = os.Remove(p)
+				}
+			}()
+			defer compressedFile.Close()
+			compressedReader = io.TeeReader(downloadReader, compressedFile)
+		} else {
+			compressedReader = downloadReader
+		}
 		// TODO: Better error message when canceled.
 		//       See: https://github.com/golang/go/issues/26356
 		timer = time.AfterFunc(staleReadTimeout, cancel)
@@ -207,7 +218,7 @@ func getDumpJSONs(
 
 		decoder := json.NewDecoder(decompressedReader)
 
-		if config.DumpType == JSONArray {
+		if config.FileType == JSONArray {
 			// Read open bracket.
 			_, err = decoder.Token()
 			if err != nil {
@@ -231,7 +242,7 @@ func getDumpJSONs(
 			}
 		}
 
-		if config.DumpType == JSONArray {
+		if config.FileType == JSONArray {
 			// Read closing bracket.
 			_, err = decoder.Token()
 			if err != nil {
@@ -307,6 +318,13 @@ func processItems(
 	}
 }
 
+// Process is a low-level function which decompresses a file (supports Compression compressions),
+// extacts JSONs from it (stored in FileType types), decodes JSONs, and calls Process callback on
+// each decoded JSON. All that in parallel fashion, controlled by DecompressionThreads,
+// JSONDecodeThreads, and ItemsProcessingThreads. File is downloaded from a HTTP URL and is
+// processed already during download. Downloaded file is optionally cached to local storage (to CacheDir
+// directory, with filename as determined by CacheFile) and followup calls to Process use a cached file
+// (if it matches CacheGlob, which should match at most one file).
 func Process(ctx context.Context, config *ProcessConfig) errors.E {
 	if config.DecompressionThreads == 0 {
 		config.DecompressionThreads = runtime.GOMAXPROCS(0)
@@ -353,12 +371,12 @@ func Process(ctx context.Context, config *ProcessConfig) errors.E {
 	jsons := make(chan json.RawMessage, config.JSONDecodeThreads)
 	items := make(chan interface{}, config.ItemsProcessingThreads)
 
-	var getDumpJSONsWg sync.WaitGroup
+	var getFileJSONsWg sync.WaitGroup
 	mainWg.Add(1)
-	getDumpJSONsWg.Add(1)
-	go getDumpJSONs(ctx, config, &getDumpJSONsWg, jsons, errs)
+	getFileJSONsWg.Add(1)
+	go getFileJSONs(ctx, config, &getFileJSONsWg, jsons, errs)
 	go func() {
-		getDumpJSONsWg.Wait()
+		getFileJSONsWg.Wait()
 		mainWg.Done()
 		// All goroutines using jsons channel as output are done,
 		// we can close the channel.

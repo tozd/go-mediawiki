@@ -41,6 +41,7 @@ type Version struct {
 
 // TODO: Should Type and Level be enumerations?
 // TODO: Should Expiry be time.Time?
+
 type Protection struct {
 	Type   string `json:"type"`
 	Level  string `json:"level"`

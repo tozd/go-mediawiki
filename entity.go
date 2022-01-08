@@ -464,11 +464,12 @@ type QuantityValue struct {
 
 // TimeValue represents a time value.
 //
-// While Time is a regular Go Time struct with nanoseconds precision,
+// While Time is a regular time.Time struct with nanoseconds precision,
 // its real precision is available by Precision.
 //
-// Note that Wikidata uses historical numbering, in which year 0 is undefined,
-// but Go uses astronomical numbering.
+// Note that Wikidata uses historical numbering, in which year 0 is undefined
+// and 1 BCE is represented by -1, but time.Time uses astronomical numbering,
+// in which 1 BCE is represented by 0.
 type TimeValue struct {
 	Time      time.Time     `json:"time"`
 	Precision TimePrecision `json:"precision"`
@@ -518,8 +519,7 @@ func (v *TimeValue) UnmarshalJSON(b []byte) error {
 // DataValue provides parsed value as Go value in Value.
 //
 // Value can be one of ErrorValue, StringValue, WikiBaseEntityIDValue,
-// GlobeCoordinateValue, MonolingualTextValue, QuantityValue, and TimeValue,
-// or nil which is generally used with SomeValue and NoValue.
+// GlobeCoordinateValue, MonolingualTextValue, QuantityValue, and TimeValue.
 type DataValue struct {
 	Value interface{} `json:"value"`
 }
