@@ -37,8 +37,12 @@ const (
 type Compression int
 
 const (
-	BZIP2 Compression = iota
+	NoCompression Compression = iota
+	Tar
+	BZIP2
+	BZIP2Tar
 	GZIP
+	GZIPTar
 )
 
 type ProcessConfig struct {
@@ -160,28 +164,33 @@ func getDumpJSONs(
 
 	var decompressedReader io.Reader
 	switch config.Compression {
-	case BZIP2:
+	case BZIP2, BZIP2Tar:
 		decompressedReader = pbzip2.NewReader(
 			ctx, countingReader,
 			pbzip2.DecompressionOptions(
 				pbzip2.BZConcurrency(config.DecompressionThreads),
 			),
 		)
-	case GZIP:
+	case GZIP, GZIPTar:
 		gzipReader, err := gzip.NewReader(countingReader) //nolint:govet
 		if err != nil {
 			errs <- errors.WithStack(err)
 			return
 		}
 		defer gzipReader.Close()
-
-		decompressedReader = tar.NewReader(gzipReader)
+		decompressedReader = gzipReader
+	case NoCompression, Tar:
+		decompressedReader = countingReader
 	default:
 		panic(errors.Errorf("unknown compression: %d", config.Compression))
 	}
 
+	if config.Compression == Tar || config.Compression == GZIPTar || config.Compression == BZIP2Tar {
+		decompressedReader = tar.NewReader(decompressedReader)
+	}
+
 	for {
-		if config.Compression == GZIP {
+		if config.Compression == Tar || config.Compression == GZIPTar || config.Compression == BZIP2Tar {
 			// Go to the first or next file in gzip/tar.
 			_, err = decompressedReader.(*tar.Reader).Next()
 			if err != nil {
@@ -231,8 +240,8 @@ func getDumpJSONs(
 			}
 		}
 
-		if config.Compression != GZIP {
-			// Only gzip/tar has multiple files.
+		if config.Compression != Tar && config.Compression != GZIPTar && config.Compression != BZIP2Tar {
+			// Only tar can have multiple files.
 			break
 		}
 	}

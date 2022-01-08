@@ -94,6 +94,6 @@ func ProcessWikipediaDump(
 		Progress:    config.Progress,
 		Item:        &Article{}, //nolint:exhaustivestruct
 		DumpType:    NDJSON,
-		Compression: GZIP,
+		Compression: GZIPTar,
 	})
 }

@@ -15,6 +15,8 @@ Features:
 * Parses into idiomatic Go structs.
 * Can download and process a dump at the same time.
 * Caches downloaded files locally.
+* Supports GZIP and BZIP2.
+* Supports data in JSON arrays and NDJSON.
 
 ## Installation
 

@@ -33,7 +33,7 @@ func TestProcessWikipediaDumpLatest(t *testing.T) {
 		ctx,
 		&mediawiki.ProcessDumpConfig{ //nolint:exhaustivestruct
 			CacheDir:  cacheDir,
-			UserAgent: "Unit test user agent (https://gitlab.com/tozd/go/mediawiki)",
+			UserAgent: testUserAgent,
 		},
 		func(_ context.Context, a mediawiki.Article) errors.E {
 			atomic.AddInt64(&articleCounter, int64(1))
@@ -74,7 +74,7 @@ func TestProcessWikipediaDumpExplicit(t *testing.T) {
 		&mediawiki.ProcessDumpConfig{ //nolint:exhaustivestruct
 			URL:       wikipediaTestDump,
 			CacheDir:  cacheDir,
-			UserAgent: "Unit test user agent (https://gitlab.com/tozd/go/mediawiki)",
+			UserAgent: testUserAgent,
 		},
 		func(_ context.Context, a mediawiki.Article) errors.E {
 			atomic.AddInt64(&articleCounter, int64(1))
