@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2022-01-09
+
 ### Added
 
 - First public release.
+
+[Unreleased]: https://gitlab.com/tozd/go/mediawiki/-/compare/v0.1.0...main
+[0.1.0]: https://gitlab.com/tozd/go/mediawiki/-/tags/v0.1.0
 
 <!-- markdownlint-disable-file MD024 -->
