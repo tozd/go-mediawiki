@@ -31,4 +31,4 @@ if you need to fork the project there.
 
 ## Usage
 
-See full package documentation with examples on [pkg.go.dev](https://pkg.go.dev/gitlab.com/tozd/go/mediawiki#section-documentation).
+See full package documentation on [pkg.go.dev](https://pkg.go.dev/gitlab.com/tozd/go/mediawiki#section-documentation).
