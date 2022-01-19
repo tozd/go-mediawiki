@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	wikipediaTestDump = "https://gitlab.com/tozd/go/mediawiki/-/raw/main/testdata/enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar.gz" //nolint:lll
+	wikipediaTestDump = "https://gitlab.com/tozd/go/mediawiki/-/raw/main/testdata/enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar.gz"
 )
 
 func TestProcessWikipediaDumpLatest(t *testing.T) {
@@ -31,7 +31,7 @@ func TestProcessWikipediaDumpLatest(t *testing.T) {
 
 	err := mediawiki.ProcessWikipediaDump(
 		ctx,
-		&mediawiki.ProcessDumpConfig{ //nolint:exhaustivestruct
+		&mediawiki.ProcessDumpConfig{
 			CacheDir:  cacheDir,
 			UserAgent: testUserAgent,
 		},
@@ -71,7 +71,7 @@ func TestProcessWikipediaDumpExplicit(t *testing.T) {
 
 	errE := mediawiki.ProcessWikipediaDump(
 		context.Background(),
-		&mediawiki.ProcessDumpConfig{ //nolint:exhaustivestruct
+		&mediawiki.ProcessDumpConfig{
 			URL:       wikipediaTestDump,
 			CacheDir:  cacheDir,
 			UserAgent: testUserAgent,

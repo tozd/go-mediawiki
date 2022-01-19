@@ -31,7 +31,7 @@ func TestProcessWikidataDumpLatest(t *testing.T) {
 
 	err := mediawiki.ProcessWikidataDump(
 		ctx,
-		&mediawiki.ProcessDumpConfig{ //nolint:exhaustivestruct
+		&mediawiki.ProcessDumpConfig{
 			CacheDir:  cacheDir,
 			UserAgent: testUserAgent,
 		},
@@ -71,7 +71,7 @@ func TestProcessWikidataDumpExplicit(t *testing.T) {
 
 	errE := mediawiki.ProcessWikidataDump(
 		context.Background(),
-		&mediawiki.ProcessDumpConfig{ //nolint:exhaustivestruct
+		&mediawiki.ProcessDumpConfig{
 			URL:       wikidataTestDump,
 			CacheDir:  cacheDir,
 			UserAgent: testUserAgent,

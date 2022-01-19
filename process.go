@@ -108,7 +108,7 @@ func getFileJSONs(
 			return
 		}
 	} else if len(matches) > 1 {
-		errs <- errors.Errorf(`too many cached files matching pattern "%s" in "%s": %d`, config.CacheGlob, config.CacheDir, len(matches)) //nolint:lll
+		errs <- errors.Errorf(`too many cached files matching pattern "%s" in "%s": %d`, config.CacheGlob, config.CacheDir, len(matches))
 		return
 	} else {
 		// Otherwise we download the file and cache it.

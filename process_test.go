@@ -41,7 +41,7 @@ func TestCompression(t *testing.T) {
 
 			itemCounter := int64(0)
 
-			err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig{ //nolint:exhaustivestruct
+			err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig{
 				URL:       testFilesBaseURL + test.name,
 				CacheDir:  cacheDir,
 				CacheGlob: test.name,

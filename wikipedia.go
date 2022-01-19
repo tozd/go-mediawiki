@@ -41,7 +41,7 @@ func latestWikipediaRun(client *retryablehttp.Client, userAgent string) (string,
 
 	lastDate := data.Links[len(data.Links)-1]
 
-	return fmt.Sprintf("https://dumps.wikimedia.org/other/enterprise_html/runs/%s/enwiki-NS0-%s-ENTERPRISE-HTML.json.tar.gz", lastDate, lastDate), nil //nolint:lll
+	return fmt.Sprintf("https://dumps.wikimedia.org/other/enterprise_html/runs/%s/enwiki-NS0-%s-ENTERPRISE-HTML.json.tar.gz", lastDate, lastDate), nil
 }
 
 // ProcessWikipediaDump downloads (unless already cached), decompresses, decodes JSON,
@@ -94,7 +94,7 @@ func ProcessWikipediaDump(
 			return processArticle(ctx, *(i.(*Article)))
 		},
 		Progress:    config.Progress,
-		Item:        &Article{}, //nolint:exhaustivestruct
+		Item:        &Article{},
 		FileType:    NDJSON,
 		Compression: GZIPTar,
 	})
