@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"gitlab.com/tozd/go/errors"
@@ -452,10 +451,8 @@ func (a *Amount) UnmarshalJSON(b []byte) error {
 }
 
 func (a *Amount) String() string {
-	// TODO: Figure out exact precision required.
-	s := a.FloatString(1000) //nolint:gomnd
-	s = strings.TrimRight(s, "0")
-	return strings.TrimRight(s, ".")
+	l, q := x.RatPrecision(&a.Rat)
+	return a.FloatString(l + q)
 }
 
 type QuantityValue struct {
