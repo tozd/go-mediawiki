@@ -21,16 +21,16 @@ type runs struct {
 }
 
 func latestWikipediaRun(client *retryablehttp.Client, userAgent string) (string, errors.E) {
-	res, err := client.Get(wikipediaRuns)
+	resp, err := client.Get(wikipediaRuns)
 	if err != nil {
 		return "", errors.WithStack(err)
 	}
-	defer res.Body.Close()
+	defer resp.Body.Close()
 
 	p := pagser.New()
 
 	var data runs
-	err = p.ParseReader(&data, res.Body)
+	err = p.ParseReader(&data, resp.Body)
 	if err != nil {
 		return "", errors.WithStack(err)
 	}

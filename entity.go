@@ -613,9 +613,8 @@ func (v DataValue) MarshalJSON() ([]byte, error) {
 			return nil, errors.WithStack(err)
 		}
 		return b, err
-	default:
-		return nil, errors.Errorf(`unknown data value type: %+v`, v.Value)
 	}
+	return nil, errors.Errorf(`unknown data value type: %+v`, v.Value)
 }
 
 func parseTime(t string) (time.Time, errors.E) {
@@ -805,7 +804,7 @@ type SiteLink struct {
 }
 
 type Snak struct {
-	Hash      string     `json:"hash,omitempty"`
+	Hash      string     `json:"hash"`
 	SnakType  SnakType   `json:"snaktype"`
 	Property  string     `json:"property"`
 	DataType  DataType   `json:"datatype"`
@@ -813,7 +812,7 @@ type Snak struct {
 }
 
 type Reference struct {
-	Hash       string            `json:"hash,omitempty"`
+	Hash       string            `json:"hash"`
 	Snaks      map[string][]Snak `json:"snaks,omitempty"`
 	SnaksOrder []string          `json:"snaks-order,omitempty"`
 }

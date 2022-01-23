@@ -423,6 +423,8 @@ WAIT:
 		// is that they return all when they are all successful, or
 		// when there was an error and we canceled the context.
 		select {
+		// This function is closing errs in defer, so we do not have
+		// to check if the channel is closed.
 		case err := <-errs:
 			allErrors = append(allErrors, err)
 			cancel()
