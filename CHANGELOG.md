@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2022-01-23
+
 ### Added
 
 - `Amount` implements `fmt.Stringer` interface.
@@ -21,7 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First public release.
 
-[Unreleased]: https://gitlab.com/tozd/go/mediawiki/-/compare/v0.1.0...main
+[Unreleased]: https://gitlab.com/tozd/go/mediawiki/-/compare/v0.2.0...main
+[0.2.0]: https://gitlab.com/tozd/go/mediawiki/-/compare/v0.1.0...v0.2.0
 [0.1.0]: https://gitlab.com/tozd/go/mediawiki/-/tags/v0.1.0
 
 <!-- markdownlint-disable-file MD024 -->
