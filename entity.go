@@ -426,17 +426,13 @@ type Amount struct {
 
 // MarshalJSON implements json.Marshaler interface for Amount.
 func (a Amount) MarshalJSON() ([]byte, error) {
-	// TODO: Figure out exact precision required.
-	s := a.FloatString(1000) //nolint:gomnd
-	s = strings.TrimRight(s, "0")
-	s = strings.TrimRight(s, ".")
 	b := bytes.Buffer{}
 	b.WriteString(`"`)
 	if a.Sign() >= 0 {
 		// Sign is required always.
 		b.WriteString("+")
 	}
-	b.WriteString(s)
+	b.WriteString(a.String())
 	b.WriteString(`"`)
 	return b.Bytes(), nil
 }
@@ -453,6 +449,13 @@ func (a *Amount) UnmarshalJSON(b []byte) error {
 		return errors.Errorf("cannot parse amount into number: %s", s)
 	}
 	return nil
+}
+
+func (a *Amount) String() string {
+	// TODO: Figure out exact precision required.
+	s := a.FloatString(1000) //nolint:gomnd
+	s = strings.TrimRight(s, "0")
+	return strings.TrimRight(s, ".")
 }
 
 type QuantityValue struct {
