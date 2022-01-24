@@ -7,12 +7,10 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"reflect"
 	"runtime"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/cosnicolaou/pbzip2"
@@ -336,9 +334,9 @@ func Process(ctx context.Context, config *ProcessConfig) errors.E {
 		config.ItemsProcessingThreads = runtime.GOMAXPROCS(0)
 	}
 
-	// We call cancel on SIGINT or SIGTERM signal and on any
-	// error from goroutines. The expectation is that all
+	// We call cancel on any error from goroutines. The expectation is that all
 	// goroutines return soon afterwards.
+	// TODO: Use golang.org/x/sync/errgroup instead?
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -346,24 +344,6 @@ func Process(ctx context.Context, config *ProcessConfig) errors.E {
 	var mainWg sync.WaitGroup
 	// mainWgChan is closed when mainWg is done.
 	mainWgChan := make(chan struct{})
-
-	// Call cancel on SIGINT or SIGTERM signal.
-	go func() {
-		c := make(chan os.Signal, 1)
-		defer close(c)
-
-		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-		defer signal.Stop(c)
-
-		// We wait for a signal or that the context is canceled
-		// or that all goroutines are done.
-		select {
-		case <-c:
-			cancel()
-		case <-ctx.Done():
-		case <-mainWgChan:
-		}
-	}()
 
 	errs := make(chan errors.E, 1+config.JSONDecodeThreads+config.ItemsProcessingThreads)
 	defer close(errs)
