@@ -3,6 +3,7 @@ package mediawiki_test
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/tozd/go/errors"
@@ -22,6 +24,11 @@ const (
 )
 
 func TestProcessWikidataDumpLatest(t *testing.T) {
+	client := retryablehttp.NewClient()
+	client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
+		req.Header.Set("User-Agent", testUserAgent)
+	}
+
 	cacheDir := t.TempDir()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -32,8 +39,8 @@ func TestProcessWikidataDumpLatest(t *testing.T) {
 	err := mediawiki.ProcessWikidataDump(
 		ctx,
 		&mediawiki.ProcessDumpConfig{
-			CacheDir:  cacheDir,
-			UserAgent: testUserAgent,
+			Client:   client,
+			CacheDir: cacheDir,
 		},
 		func(_ context.Context, a mediawiki.Entity) errors.E {
 			atomic.AddInt64(&entityCounter, int64(1))
@@ -65,6 +72,11 @@ func TestProcessWikidataDumpLatest(t *testing.T) {
 }
 
 func TestProcessWikidataDumpExplicit(t *testing.T) {
+	client := retryablehttp.NewClient()
+	client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
+		req.Header.Set("User-Agent", testUserAgent)
+	}
+
 	cacheDir := t.TempDir()
 
 	entityCounter := int64(0)
@@ -72,9 +84,9 @@ func TestProcessWikidataDumpExplicit(t *testing.T) {
 	errE := mediawiki.ProcessWikidataDump(
 		context.Background(),
 		&mediawiki.ProcessDumpConfig{
-			URL:       wikidataTestDump,
-			CacheDir:  cacheDir,
-			UserAgent: testUserAgent,
+			URL:      wikidataTestDump,
+			Client:   client,
+			CacheDir: cacheDir,
 		},
 		func(_ context.Context, a mediawiki.Entity) errors.E {
 			atomic.AddInt64(&entityCounter, int64(1))

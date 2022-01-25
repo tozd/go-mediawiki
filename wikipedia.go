@@ -20,7 +20,7 @@ type runs struct {
 	Links []string `pagser:"a->eachAttr(href)"`
 }
 
-func latestWikipediaRun(client *retryablehttp.Client, userAgent string) (string, errors.E) {
+func latestWikipediaRun(client *retryablehttp.Client) (string, errors.E) {
 	resp, err := client.Get(wikipediaRuns)
 	if err != nil {
 		return "", errors.WithStack(err)
@@ -50,14 +50,8 @@ func ProcessWikipediaDump(
 	ctx context.Context, config *ProcessDumpConfig,
 	processArticle func(context.Context, Article) errors.E,
 ) errors.E {
-	if config.UserAgent == "" {
-		return errors.New("user agent is a required configuration option")
-	}
-	var client *retryablehttp.Client
-	if config.Client != nil {
-		client = config.Client
-	} else {
-		client = defaultClient
+	if config.Client == nil {
+		return errors.New("client is a required configuration option")
 	}
 	var url, cacheGlob string
 	var cacheFilename func(*http.Response) (string, errors.E)
@@ -70,7 +64,7 @@ func ProcessWikipediaDump(
 		}
 	} else {
 		var err errors.E
-		url, err = latestWikipediaRun(client, config.UserAgent)
+		url, err = latestWikipediaRun(config.Client)
 		if err != nil {
 			return errors.Wrap(err, "unable to determine the latest English Wikipedia dump run")
 		}
@@ -85,11 +79,10 @@ func ProcessWikipediaDump(
 		CacheDir:               config.CacheDir,
 		CacheGlob:              cacheGlob,
 		CacheFilename:          cacheFilename,
-		Client:                 client,
+		Client:                 config.Client,
 		DecompressionThreads:   config.DecompressionThreads,
 		JSONDecodeThreads:      config.JSONDecodeThreads,
 		ItemsProcessingThreads: config.ItemsProcessingThreads,
-		UserAgent:              config.UserAgent,
 		Process: func(ctx context.Context, i interface{}) errors.E {
 			return processArticle(ctx, *(i.(*Article)))
 		},

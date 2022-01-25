@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Remove `UserAgent` parameter. Provided HTTP client should set it instead.
+
 ## [0.3.0] - 2022-01-24
 
 ### Changed

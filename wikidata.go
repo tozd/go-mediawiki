@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/hashicorp/go-retryablehttp"
 	"gitlab.com/tozd/go/errors"
 )
 
@@ -20,14 +19,8 @@ func ProcessWikidataDump(
 	ctx context.Context, config *ProcessDumpConfig,
 	processEntity func(context.Context, Entity) errors.E,
 ) errors.E {
-	if config.UserAgent == "" {
-		return errors.New("user agent is a required configuration option")
-	}
-	var client *retryablehttp.Client
-	if config.Client != nil {
-		client = config.Client
-	} else {
-		client = defaultClient
+	if config.Client == nil {
+		return errors.New("client is a required configuration option")
 	}
 	var url, cacheGlob string
 	var cacheFilename func(*http.Response) (string, errors.E)
@@ -58,11 +51,10 @@ func ProcessWikidataDump(
 		CacheDir:               config.CacheDir,
 		CacheGlob:              cacheGlob,
 		CacheFilename:          cacheFilename,
-		Client:                 client,
+		Client:                 config.Client,
 		DecompressionThreads:   config.DecompressionThreads,
 		JSONDecodeThreads:      config.JSONDecodeThreads,
 		ItemsProcessingThreads: config.ItemsProcessingThreads,
-		UserAgent:              config.UserAgent,
 		Process: func(ctx context.Context, i interface{}) errors.E {
 			return processEntity(ctx, *(i.(*Entity)))
 		},

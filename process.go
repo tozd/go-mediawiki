@@ -45,7 +45,14 @@ const (
 
 // ProcessConfig is a configuration for low-level Process function.
 //
-// URL, UserAgent, Process, Item, FileType, and Compression are required.
+// URL, Client, Process, Item, FileType, and Compression are required.
+//
+// Client should set User-Agent header with contact information, e.g.:
+//
+//     client := retryablehttp.NewClient()
+//     client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
+//     	req.Header.Set("User-Agent", "My bot (user@example.com)")
+//     }
 type ProcessConfig struct {
 	URL                    string
 	CacheDir               string
@@ -55,7 +62,6 @@ type ProcessConfig struct {
 	DecompressionThreads   int
 	JSONDecodeThreads      int
 	ItemsProcessingThreads int
-	UserAgent              string
 	Process                func(context.Context, interface{}) errors.E
 	Progress               func(context.Context, x.Progress)
 	Item                   interface{}
@@ -114,9 +120,6 @@ func getFileJSONs(
 		if err != nil {
 			errs <- errors.WithStack(err)
 			return
-		}
-		if config.UserAgent != "" {
-			req.Header.Set("User-Agent", config.UserAgent)
 		}
 		downloadReader, errE := x.NewRetryableResponse(config.Client, req)
 		if errE != nil {

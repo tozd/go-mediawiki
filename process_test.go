@@ -20,6 +20,9 @@ const (
 
 func TestCompression(t *testing.T) {
 	client := retryablehttp.NewClient()
+	client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
+		req.Header.Set("User-Agent", testUserAgent)
+	}
 
 	tests := []struct {
 		name        string
@@ -48,8 +51,7 @@ func TestCompression(t *testing.T) {
 				CacheFilename: func(_ *http.Response) (string, errors.E) {
 					return test.name, nil
 				},
-				Client:    client,
-				UserAgent: testUserAgent,
+				Client: client,
 				Process: func(ctx context.Context, i interface{}) errors.E {
 					atomic.AddInt64(&itemCounter, int64(1))
 					return nil
