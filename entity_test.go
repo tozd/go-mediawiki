@@ -21,6 +21,7 @@ func TestTime(t *testing.T) {
 		{"+11952-00-00T00:00:00Z", Year},
 		{"+10001-00-00T00:00:00Z", Year},
 		{"-10001-00-00T00:00:00Z", Year},
+		{"-13798000000-00-00T00:00:00Z", Year},
 	}
 	for _, test := range tests {
 		t.Run(test.time, func(t *testing.T) {
