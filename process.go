@@ -12,8 +12,10 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 	"unsafe"
 
 	"github.com/cosnicolaou/pbzip2"
@@ -345,6 +347,51 @@ func getFileRows(
 	_, _ = io.Copy(io.Discard, compressedReader)
 }
 
+// Similar to strings.ToValidUTF8, but makes sure that the number
+// of bytes in the output is the same as the input. It replaces
+// all invalid bytes in UTF-8 with zero byte.
+func makeValid(s string) string {
+	var b strings.Builder
+
+	for i, c := range s {
+		if c != utf8.RuneError {
+			continue
+		}
+
+		_, wid := utf8.DecodeRuneInString(s[i:])
+		if wid == 1 {
+			b.Grow(len(s) + 1)
+			b.WriteString(s[:i])
+			s = s[i:]
+			break
+		}
+	}
+
+	// Fast path for unchanged input.
+	if b.Cap() == 0 {
+		return s
+	}
+
+	for i := 0; i < len(s); {
+		c := s[i]
+		if c < utf8.RuneSelf {
+			i++
+			b.WriteByte(c)
+			continue
+		}
+		_, wid := utf8.DecodeRuneInString(s[i:])
+		if wid == 1 {
+			i++
+			b.WriteRune(0)
+			continue
+		}
+		b.WriteString(s[i : i+wid])
+		i += wid
+	}
+
+	return b.String()
+}
+
 func decodeJSON(ctx context.Context, itemType reflect.Type, r []byte, output chan<- interface{}, errs chan<- errors.E) {
 	e := reflect.New(itemType).Interface()
 	errE := x.UnmarshalWithoutUnknownFields(r, &e)
@@ -408,7 +455,17 @@ func decodeRows(
 								errs <- errors.Errorf("unexpected insert value %T at column %d: %s", c, i, row)
 								return
 							}
-							v[columns[i]] = c.GetValue()
+							z := c.GetValue()
+							zz, ok := z.(string)
+							if ok {
+								// We have to make strings valid UTF-8 strings, otherwise they get "fixed"
+								// during JSON encoding/decoding process, which can change their length,
+								// which then breaks PHP decoding in DecodeImageMetadata, which is based
+								// on data lengths in bytes. This is why we have to fix them and preserve
+								// string length (and that of all substrings) at the same time.
+								z = makeValid(zz)
+							}
+							v[columns[i]] = z
 						}
 						// We marshal to JSON to decode to a struct if provided.
 						d, err := x.MarshalWithoutEscapeHTML(v)
