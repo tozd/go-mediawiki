@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -76,7 +75,6 @@ func (i *statementIterator) Next(b *[]byte) errors.E {
 			i.buffer = bytes.Buffer{}
 			return nil
 		}
-		fmt.Printf("line %v\n", line)
 		return errors.WithStack(err)
 	}
 	if len(bytes.TrimSpace(line)) == 0 || bytes.HasPrefix(line, []byte("--")) {
