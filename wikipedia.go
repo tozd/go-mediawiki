@@ -81,7 +81,7 @@ func ProcessWikipediaDump(
 		CacheFilename:          cacheFilename,
 		Client:                 config.Client,
 		DecompressionThreads:   config.DecompressionThreads,
-		JSONDecodeThreads:      config.JSONDecodeThreads,
+		DecodingThreads:        config.DecodingThreads,
 		ItemsProcessingThreads: config.ItemsProcessingThreads,
 		Process: func(ctx context.Context, i interface{}) errors.E {
 			return processArticle(ctx, *(i.(*Article)))

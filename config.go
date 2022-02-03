@@ -22,7 +22,7 @@ type ProcessDumpConfig struct {
 	CacheDir               string
 	Client                 *retryablehttp.Client
 	DecompressionThreads   int
-	JSONDecodeThreads      int
+	DecodingThreads        int
 	ItemsProcessingThreads int
 	Progress               func(context.Context, x.Progress)
 }

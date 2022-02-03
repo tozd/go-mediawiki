@@ -30,6 +30,7 @@ type FileType int
 const (
 	JSONArray FileType = iota
 	NDJSON
+	SQLDump
 )
 
 type Compression int
@@ -60,7 +61,7 @@ type ProcessConfig struct {
 	CacheFilename          func(*http.Response) (string, errors.E)
 	Client                 *retryablehttp.Client
 	DecompressionThreads   int
-	JSONDecodeThreads      int
+	DecodingThreads        int
 	ItemsProcessingThreads int
 	Process                func(context.Context, interface{}) errors.E
 	Progress               func(context.Context, x.Progress)
@@ -69,9 +70,9 @@ type ProcessConfig struct {
 	Compression            Compression
 }
 
-func getFileJSONs(
+func getFileRows(
 	ctx context.Context, config *ProcessConfig, wg *sync.WaitGroup,
-	output chan<- json.RawMessage, errs chan<- errors.E,
+	output chan<- []byte, errs chan<- errors.E,
 ) {
 	defer wg.Done()
 
@@ -262,9 +263,9 @@ func getFileJSONs(
 	_, _ = io.Copy(io.Discard, compressedReader)
 }
 
-func decodeJSONs(
+func decodeRows(
 	ctx context.Context, config *ProcessConfig, wg *sync.WaitGroup,
-	input <-chan json.RawMessage, output chan<- interface{}, errs chan<- errors.E,
+	input <-chan []byte, output chan<- interface{}, errs chan<- errors.E,
 ) {
 	defer wg.Done()
 
@@ -320,9 +321,9 @@ func processItems(
 }
 
 // Process is a low-level function which decompresses a file (supports Compression compressions),
-// extacts JSONs from it (stored in FileType types), decodes JSONs, and calls Process callback on
-// each decoded JSON. All that in parallel fashion, controlled by DecompressionThreads,
-// JSONDecodeThreads, and ItemsProcessingThreads. File is downloaded from a HTTP URL and is
+// extacts JSONs or SQL statements from it (stored in FileType types), decodes JSONs or SQL statements, and
+// calls Process callback on each decoded JSON or SQL statement. All that in parallel fashion, controlled by
+// DecompressionThreads, DecodingThreads, and ItemsProcessingThreads. File is downloaded from a HTTP URL and is
 // processed already during download. Downloaded file is optionally cached to local storage (to CacheDir
 // directory, with filename as determined by CacheFile) and followup calls to Process use a cached file
 // (if it matches CacheGlob, which should match at most one file).
@@ -330,8 +331,8 @@ func Process(ctx context.Context, config *ProcessConfig) errors.E {
 	if config.DecompressionThreads == 0 {
 		config.DecompressionThreads = runtime.GOMAXPROCS(0)
 	}
-	if config.JSONDecodeThreads == 0 {
-		config.JSONDecodeThreads = runtime.GOMAXPROCS(0)
+	if config.DecodingThreads == 0 {
+		config.DecodingThreads = runtime.GOMAXPROCS(0)
 	}
 	if config.ItemsProcessingThreads == 0 {
 		config.ItemsProcessingThreads = runtime.GOMAXPROCS(0)
@@ -348,32 +349,32 @@ func Process(ctx context.Context, config *ProcessConfig) errors.E {
 	// mainWgChan is closed when mainWg is done.
 	mainWgChan := make(chan struct{})
 
-	errs := make(chan errors.E, 1+config.JSONDecodeThreads+config.ItemsProcessingThreads)
+	errs := make(chan errors.E, 1+config.DecodingThreads+config.ItemsProcessingThreads)
 	defer close(errs)
 
-	jsons := make(chan json.RawMessage, config.JSONDecodeThreads)
+	rows := make(chan []byte, config.DecodingThreads)
 	items := make(chan interface{}, config.ItemsProcessingThreads)
 
-	var getFileJSONsWg sync.WaitGroup
+	var getFileRowsWg sync.WaitGroup
 	mainWg.Add(1)
-	getFileJSONsWg.Add(1)
-	go getFileJSONs(ctx, config, &getFileJSONsWg, jsons, errs)
+	getFileRowsWg.Add(1)
+	go getFileRows(ctx, config, &getFileRowsWg, rows, errs)
 	go func() {
-		getFileJSONsWg.Wait()
+		getFileRowsWg.Wait()
 		mainWg.Done()
-		// All goroutines using jsons channel as output are done,
+		// All goroutines using rows channel as output are done,
 		// we can close the channel.
-		close(jsons)
+		close(rows)
 	}()
 
-	var decodeJSONsWg sync.WaitGroup
+	var decodeRowsWg sync.WaitGroup
 	mainWg.Add(1)
-	for w := 0; w < config.JSONDecodeThreads; w++ {
-		decodeJSONsWg.Add(1)
-		go decodeJSONs(ctx, config, &decodeJSONsWg, jsons, items, errs)
+	for w := 0; w < config.DecodingThreads; w++ {
+		decodeRowsWg.Add(1)
+		go decodeRows(ctx, config, &decodeRowsWg, rows, items, errs)
 	}
 	go func() {
-		decodeJSONsWg.Wait()
+		decodeRowsWg.Wait()
 		mainWg.Done()
 		// All goroutines using items channel as output are done,
 		// we can close the channel.

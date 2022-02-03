@@ -53,7 +53,7 @@ func ProcessCommonsDump(
 		CacheFilename:          cacheFilename,
 		Client:                 config.Client,
 		DecompressionThreads:   config.DecompressionThreads,
-		JSONDecodeThreads:      config.JSONDecodeThreads,
+		DecodingThreads:        config.DecodingThreads,
 		ItemsProcessingThreads: config.ItemsProcessingThreads,
 		Process: func(ctx context.Context, i interface{}) errors.E {
 			return processEntity(ctx, Entity(*(i.(*commonsEntity))))
