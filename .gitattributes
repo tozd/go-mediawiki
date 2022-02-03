@@ -7,3 +7,4 @@ testdata/wikidata-testdata-all.json filter=lfs diff=lfs merge=lfs -text
 testdata/commons-testdata-mediainfo.json filter=lfs diff=lfs merge=lfs -text
 testdata/commons-testdata-mediainfo.json.bz2 filter=lfs diff=lfs merge=lfs -text
 testdata/commons-testdata-mediainfo.json.gz filter=lfs diff=lfs merge=lfs -text
+testdata/commonswiki-20220120-image.sql.gz filter=lfs diff=lfs merge=lfs -text
