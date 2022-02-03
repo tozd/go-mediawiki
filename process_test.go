@@ -88,10 +88,15 @@ func TestSQLDump(t *testing.T) {
 		},
 		Client: client,
 		Process: func(ctx context.Context, i interface{}) errors.E {
+			m := *i.(*map[string]interface{})
+			_, err := mediawiki.DecodeImageMetadata(m["img_metadata"])
+			if err != nil {
+				return err
+			}
 			atomic.AddInt64(&itemCounter, int64(1))
 			return nil
 		},
-		Item:            new(interface{}),
+		Item:            new(map[string]interface{}),
 		FileType:        mediawiki.SQLDump,
 		Compression:     mediawiki.GZIP,
 		DecodingThreads: 1,

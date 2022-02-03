@@ -2,10 +2,13 @@ package mediawiki
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"path"
+	"strings"
 
+	"github.com/elliotchance/phpserialize"
 	"gitlab.com/tozd/go/errors"
 )
 
@@ -63,4 +66,54 @@ func ProcessCommonsDump(
 		FileType:    JSONArray,
 		Compression: BZIP2,
 	})
+}
+
+func convertToStringMaps(value interface{}) interface{} {
+	switch v := value.(type) {
+	case []interface{}:
+		for i, el := range v {
+			v[i] = convertToStringMaps(el)
+		}
+	case map[interface{}]interface{}:
+		return convertToStringMapsMap(v)
+	}
+	return value
+}
+
+func convertToStringMapsMap(m map[interface{}]interface{}) map[string]interface{} {
+	out := make(map[string]interface{})
+
+	for key, value := range m {
+		out[fmt.Sprint(key)] = convertToStringMaps(value)
+	}
+
+	return out
+}
+
+// DecodeImageMetadata decodes image and other uploaded files metadata column in
+// image table. See: https://www.mediawiki.org/wiki/Manual:Image_table
+func DecodeImageMetadata(metadata interface{}) (map[string]interface{}, errors.E) {
+	if metadata == "" || metadata == "0" || metadata == "-1" {
+		return make(map[string]interface{}), nil
+	}
+
+	m, ok := metadata.(string)
+	if !ok {
+		return nil, errors.New("metadata is not a string")
+	}
+	if strings.HasPrefix(m, "{") {
+		var d map[string]interface{}
+		err := json.Unmarshal([]byte(m), &d)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		return d, nil
+	}
+
+	var d map[interface{}]interface{}
+	err := phpserialize.Unmarshal([]byte(m), &d)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return convertToStringMapsMap(d), nil
 }
