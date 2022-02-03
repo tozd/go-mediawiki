@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/tozd/go/errors"
+	"gitlab.com/tozd/go/x"
 
 	"gitlab.com/tozd/go/mediawiki"
 )
@@ -45,16 +46,16 @@ func TestProcessWikidataDumpLatest(t *testing.T) {
 		func(_ context.Context, a mediawiki.Entity) errors.E {
 			atomic.AddInt64(&entityCounter, int64(1))
 			cancel()
-			b, err := json.Marshal(a)
-			if err != nil {
-				return errors.Wrapf(err, "cannot marshal json: %+v", a)
+			b, errE := x.MarshalWithoutEscapeHTML(a)
+			if errE != nil {
+				return errors.Wrapf(errE, "cannot marshal json: %+v", a)
 			}
 			var c mediawiki.Entity
-			err = json.Unmarshal(b, &c)
+			err := json.Unmarshal(b, &c)
 			if err != nil {
 				return errors.Wrapf(err, "cannot unmarshal json: %s", string(b))
 			}
-			d, err := json.Marshal(c)
+			d, err := x.MarshalWithoutEscapeHTML(c)
 			if err != nil {
 				return errors.Wrapf(err, "cannot marshal json again: %+v", c)
 			}
@@ -90,16 +91,16 @@ func TestProcessWikidataDumpExplicit(t *testing.T) {
 		},
 		func(_ context.Context, a mediawiki.Entity) errors.E {
 			atomic.AddInt64(&entityCounter, int64(1))
-			b, err := json.Marshal(a)
-			if err != nil {
-				return errors.Wrapf(err, "cannot marshal json: %+v", a)
+			b, errE := x.MarshalWithoutEscapeHTML(a)
+			if errE != nil {
+				return errors.Wrapf(errE, "cannot marshal json: %+v", a)
 			}
 			var c mediawiki.Entity
-			err = json.Unmarshal(b, &c)
+			err := json.Unmarshal(b, &c)
 			if err != nil {
 				return errors.Wrapf(err, "cannot unmarshal json: %s", string(b))
 			}
-			d, err := json.Marshal(c)
+			d, err := x.MarshalWithoutEscapeHTML(c)
 			if err != nil {
 				return errors.Wrapf(err, "cannot marshal json again: %+v", c)
 			}

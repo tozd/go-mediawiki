@@ -489,7 +489,7 @@ func (v TimeValue) MarshalJSON() ([]byte, error) {
 		Calendar  CalendarModel `json:"calendarmodel"`
 	}
 	formatedTime := formatTime(v.Time, v.Precision)
-	b, err := json.Marshal(t{
+	b, err := x.MarshalWithoutEscapeHTML(t{
 		formatedTime,
 		v.Precision,
 		v.Calendar,
@@ -557,7 +557,7 @@ func formatTime(t time.Time, p TimePrecision) string {
 func (v DataValue) MarshalJSON() ([]byte, error) {
 	switch value := v.Value.(type) {
 	case ErrorValue:
-		b, err := json.Marshal(struct {
+		b, err := x.MarshalWithoutEscapeHTML(struct {
 			Error ErrorValue `json:"error"`
 		}{value})
 		if err != nil {
@@ -565,7 +565,7 @@ func (v DataValue) MarshalJSON() ([]byte, error) {
 		}
 		return b, err
 	case StringValue:
-		b, err := json.Marshal(struct {
+		b, err := x.MarshalWithoutEscapeHTML(struct {
 			Type  string      `json:"type"`
 			Value StringValue `json:"value"`
 		}{"string", value})
@@ -574,7 +574,7 @@ func (v DataValue) MarshalJSON() ([]byte, error) {
 		}
 		return b, err
 	case WikiBaseEntityIDValue:
-		b, err := json.Marshal(struct {
+		b, err := x.MarshalWithoutEscapeHTML(struct {
 			Type  string                `json:"type"`
 			Value WikiBaseEntityIDValue `json:"value"`
 		}{"wikibase-entityid", value})
@@ -583,7 +583,7 @@ func (v DataValue) MarshalJSON() ([]byte, error) {
 		}
 		return b, err
 	case GlobeCoordinateValue:
-		b, err := json.Marshal(struct {
+		b, err := x.MarshalWithoutEscapeHTML(struct {
 			Type  string               `json:"type"`
 			Value GlobeCoordinateValue `json:"value"`
 		}{"globecoordinate", value})
@@ -592,7 +592,7 @@ func (v DataValue) MarshalJSON() ([]byte, error) {
 		}
 		return b, err
 	case MonolingualTextValue:
-		b, err := json.Marshal(struct {
+		b, err := x.MarshalWithoutEscapeHTML(struct {
 			Type  string               `json:"type"`
 			Value MonolingualTextValue `json:"value"`
 		}{"monolingualtext", value})
@@ -601,7 +601,7 @@ func (v DataValue) MarshalJSON() ([]byte, error) {
 		}
 		return b, err
 	case QuantityValue:
-		b, err := json.Marshal(struct {
+		b, err := x.MarshalWithoutEscapeHTML(struct {
 			Type  string        `json:"type"`
 			Value QuantityValue `json:"value"`
 		}{"quantity", value})
@@ -610,7 +610,7 @@ func (v DataValue) MarshalJSON() ([]byte, error) {
 		}
 		return b, err
 	case TimeValue:
-		b, err := json.Marshal(struct {
+		b, err := x.MarshalWithoutEscapeHTML(struct {
 			Type  string    `json:"type"`
 			Value TimeValue `json:"value"`
 		}{"time", value})

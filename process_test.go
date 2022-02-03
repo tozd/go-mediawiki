@@ -68,3 +68,34 @@ func TestCompression(t *testing.T) {
 		})
 	}
 }
+
+func TestSQLDump(t *testing.T) {
+	client := retryablehttp.NewClient()
+	client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
+		req.Header.Set("User-Agent", testUserAgent)
+	}
+
+	cacheDir := t.TempDir()
+
+	itemCounter := int64(0)
+
+	err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig{
+		URL:       testFilesBaseURL + "commonswiki-20220120-image.sql.gz",
+		CacheDir:  cacheDir,
+		CacheGlob: "commonswiki-20220120-image.sql.gz",
+		CacheFilename: func(_ *http.Response) (string, errors.E) {
+			return "commonswiki-20220120-image.sql.gz", nil
+		},
+		Client: client,
+		Process: func(ctx context.Context, i interface{}) errors.E {
+			atomic.AddInt64(&itemCounter, int64(1))
+			return nil
+		},
+		Item:            new(interface{}),
+		FileType:        mediawiki.SQLDump,
+		Compression:     mediawiki.GZIP,
+		DecodingThreads: 1,
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, int64(9057), itemCounter)
+}

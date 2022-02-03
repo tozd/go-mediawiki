@@ -2,8 +2,11 @@ package mediawiki
 
 import (
 	"archive/tar"
+	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -12,10 +15,14 @@ import (
 	"runtime"
 	"sync"
 	"time"
+	"unsafe"
 
 	"github.com/cosnicolaou/pbzip2"
 	"github.com/hashicorp/go-retryablehttp"
 	gzip "github.com/klauspost/pgzip"
+	"github.com/pingcap/parser"
+	"github.com/pingcap/parser/ast"
+	"github.com/pingcap/parser/test_driver"
 	"gitlab.com/tozd/go/errors"
 	"gitlab.com/tozd/go/x"
 )
@@ -24,6 +31,72 @@ const (
 	progressPrintRate = 30 * time.Second
 	staleReadTimeout  = 60 * time.Second
 )
+
+type iterator interface {
+	More() bool
+	Next(*[]byte) errors.E
+}
+
+type jsonIterator json.Decoder
+
+func (i *jsonIterator) More() bool {
+	return (*json.Decoder)(i).More()
+}
+
+func (i *jsonIterator) Next(b *[]byte) errors.E {
+	err := (*json.Decoder)(i).Decode((*json.RawMessage)(b))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
+}
+
+func newJSONIterator(r io.Reader) iterator { //nolint:ireturn
+	return (*jsonIterator)(json.NewDecoder(r))
+}
+
+type statementIterator struct {
+	reader *bufio.Reader
+	buffer bytes.Buffer
+}
+
+func (i *statementIterator) More() bool {
+	if i.buffer.Len() > 0 {
+		return true
+	}
+	_, err := i.reader.Peek(1)
+	return !errors.Is(err, io.EOF)
+}
+
+func (i *statementIterator) Next(b *[]byte) errors.E {
+	line, err := i.reader.ReadBytes('\n')
+	if err != nil {
+		if errors.Is(err, io.EOF) && i.buffer.Len() > 0 {
+			*b = i.buffer.Bytes()
+			i.buffer = bytes.Buffer{}
+			return nil
+		}
+		fmt.Printf("line %v\n", line)
+		return errors.WithStack(err)
+	}
+	if len(bytes.TrimSpace(line)) == 0 || bytes.HasPrefix(line, []byte("--")) {
+		return i.Next(b)
+	}
+	i.buffer.Write(line)
+	if !bytes.HasSuffix(line, []byte(";\n")) {
+		return i.Next(b)
+	}
+	*b = i.buffer.Bytes()
+	i.buffer = bytes.Buffer{}
+	return nil
+}
+
+func newStatementIterator(r io.Reader) *statementIterator {
+	return &statementIterator{
+		reader: bufio.NewReader(r),
+		buffer: bytes.Buffer{},
+	}
+}
 
 type FileType int
 
@@ -218,35 +291,46 @@ func getFileRows(
 			}
 		}
 
-		decoder := json.NewDecoder(decompressedReader)
+		var iter iterator
+		switch config.FileType {
+		case JSONArray, NDJSON:
+			iter = newJSONIterator(decompressedReader)
+		case SQLDump:
+			iter = newStatementIterator(decompressedReader)
+		}
 
 		if config.FileType == JSONArray {
 			// Read open bracket.
-			_, err = decoder.Token()
+			_, err = (*json.Decoder)(iter.(*jsonIterator)).Token()
 			if err != nil {
 				errs <- errors.WithStack(err)
 				return
 			}
 		}
 
-		for decoder.More() {
-			var raw json.RawMessage
-			err = decoder.Decode(&raw)
+		for iter.More() {
+			var row []byte
+			err := iter.Next(&row)
 			if err != nil {
-				errs <- errors.WithStack(err)
+				// Maybe More thought there was more, but there was not really more
+				// after the row was fully processed.
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				errs <- err
 				return
 			}
 			select {
 			case <-ctx.Done():
 				errs <- errors.WithStack(ctx.Err())
 				return
-			case output <- raw:
+			case output <- row:
 			}
 		}
 
 		if config.FileType == JSONArray {
 			// Read closing bracket.
-			_, err = decoder.Token()
+			_, err = (*json.Decoder)(iter.(*jsonIterator)).Token()
 			if err != nil {
 				errs <- errors.WithStack(err)
 				return
@@ -263,6 +347,21 @@ func getFileRows(
 	_, _ = io.Copy(io.Discard, compressedReader)
 }
 
+func decodeJSON(ctx context.Context, itemType reflect.Type, r []byte, output chan<- interface{}, errs chan<- errors.E) {
+	e := reflect.New(itemType).Interface()
+	errE := x.UnmarshalWithoutUnknownFields(r, &e)
+	if errE != nil {
+		errs <- errors.Wrapf(errE, "cannot decode json: %s", r)
+		return
+	}
+	select {
+	case <-ctx.Done():
+		errs <- errors.WithStack(ctx.Err())
+		return
+	case output <- e:
+	}
+}
+
 func decodeRows(
 	ctx context.Context, config *ProcessConfig, wg *sync.WaitGroup,
 	input <-chan []byte, output chan<- interface{}, errs chan<- errors.E,
@@ -270,24 +369,63 @@ func decodeRows(
 	defer wg.Done()
 
 	itemType := reflect.TypeOf(config.Item).Elem()
+	sqlParser := parser.New()
+	var columns []string
 
 	for {
 		select {
-		case raw, ok := <-input:
+		case row, ok := <-input:
 			if !ok {
 				return
 			}
-			e := reflect.New(itemType).Interface()
-			errE := x.UnmarshalWithoutUnknownFields(raw, &e)
-			if errE != nil {
-				errs <- errors.Wrapf(errE, "cannot decode json: %s", raw)
-				return
-			}
-			select {
-			case <-ctx.Done():
-				errs <- errors.WithStack(ctx.Err())
-				return
-			case output <- e:
+
+			if config.FileType == SQLDump {
+				rowString := *(*string)(unsafe.Pointer(&row))
+				stmt, err := sqlParser.ParseOneStmt(rowString, "", "")
+				if err != nil {
+					errs <- errors.Wrapf(err, "cannot parse sql: %s", row)
+					return
+				}
+				switch s := stmt.(type) {
+				case *ast.SetStmt:
+					continue
+				case *ast.DropTableStmt:
+					continue
+				case *ast.AlterTableStmt:
+					continue
+				case *ast.CreateTableStmt:
+					if columns != nil {
+						errs <- errors.New("columns already set")
+						return
+					}
+					for _, col := range s.Cols {
+						columns = append(columns, col.Name.Name.O)
+					}
+				case *ast.InsertStmt:
+					for _, r := range s.Lists {
+						v := make(map[string]interface{})
+						for i, column := range r {
+							c, ok := column.(*test_driver.ValueExpr)
+							if !ok {
+								errs <- errors.Errorf("unexpected insert value %T at column %d: %s", c, i, row)
+								return
+							}
+							v[columns[i]] = c.GetValue()
+						}
+						// We marshal to JSON to decode to a struct if provided.
+						d, err := x.MarshalWithoutEscapeHTML(v)
+						if err != nil {
+							errs <- errors.WithStack(err)
+							return
+						}
+						decodeJSON(ctx, itemType, d, output, errs)
+					}
+				default:
+					errs <- errors.Errorf("unexpected statement %T: %s", stmt, row)
+					return
+				}
+			} else {
+				decodeJSON(ctx, itemType, row, output, errs)
 			}
 		case <-ctx.Done():
 			errs <- errors.WithStack(ctx.Err())

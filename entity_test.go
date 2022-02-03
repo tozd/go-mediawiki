@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gitlab.com/tozd/go/x"
 )
 
 func TestTime(t *testing.T) {
@@ -47,7 +48,7 @@ func TestAmount(t *testing.T) {
 			var a Amount
 			err := json.Unmarshal([]byte(in), &a)
 			require.NoError(t, err)
-			out, err := json.Marshal(a)
+			out, err := x.MarshalWithoutEscapeHTML(a)
 			require.NoError(t, err)
 			assert.Equal(t, in, string(out))
 		})
