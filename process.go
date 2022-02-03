@@ -33,6 +33,40 @@ const (
 	staleReadTimeout  = 60 * time.Second
 )
 
+type syncVar struct {
+	lock *sync.RWMutex
+	cond *sync.Cond
+	v    interface{}
+}
+
+func (w *syncVar) Load() interface{} {
+	w.cond.L.Lock()
+	defer w.cond.L.Unlock()
+	for w.v == nil {
+		w.cond.Wait()
+	}
+	return w.v
+}
+
+func (w *syncVar) Store(v interface{}) errors.E {
+	w.lock.Lock()
+	defer w.lock.Unlock()
+	if w.v != nil {
+		return errors.New("already stored")
+	}
+	w.v = v
+	w.cond.Broadcast()
+	return nil
+}
+
+func newWriteOnce() *syncVar {
+	l := &sync.RWMutex{}
+	return &syncVar{
+		lock: l,
+		cond: sync.NewCond(l.RLocker()),
+	}
+}
+
 type iterator interface {
 	More() bool
 	Next(*[]byte) errors.E
@@ -408,7 +442,7 @@ func decodeJSON(ctx context.Context, itemType reflect.Type, r []byte, output cha
 }
 
 func decodeRows(
-	ctx context.Context, config *ProcessConfig, wg *sync.WaitGroup,
+	ctx context.Context, config *ProcessConfig, wg *sync.WaitGroup, decodeRowsState *syncVar,
 	input <-chan []byte, output chan<- interface{}, errs chan<- errors.E,
 ) {
 	defer wg.Done()
@@ -439,14 +473,22 @@ func decodeRows(
 				case *ast.AlterTableStmt:
 					continue
 				case *ast.CreateTableStmt:
-					if columns != nil {
-						errs <- errors.New("columns already set")
+					cols := []string{}
+					for _, col := range s.Cols {
+						cols = append(cols, col.Name.Name.O)
+					}
+					// Share columns with other goroutines.
+					err := decodeRowsState.Store(cols)
+					if err != nil {
+						errs <- err
 						return
 					}
-					for _, col := range s.Cols {
-						columns = append(columns, col.Name.Name.O)
-					}
+					columns = cols
 				case *ast.InsertStmt:
+					if columns == nil {
+						// Wait for another goroutine to process CreateTableStmt.
+						columns = decodeRowsState.Load().([]string) //nolint:errcheck
+					}
 					for _, r := range s.Lists {
 						v := make(map[string]interface{})
 						for i, column := range r {
@@ -561,10 +603,11 @@ func Process(ctx context.Context, config *ProcessConfig) errors.E {
 	}()
 
 	var decodeRowsWg sync.WaitGroup
+	decodeRowsState := newWriteOnce()
 	mainWg.Add(1)
 	for w := 0; w < config.DecodingThreads; w++ {
 		decodeRowsWg.Add(1)
-		go decodeRows(ctx, config, &decodeRowsWg, rows, items, errs)
+		go decodeRows(ctx, config, &decodeRowsWg, decodeRowsState, rows, items, errs)
 	}
 	go func() {
 		decodeRowsWg.Wait()

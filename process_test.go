@@ -96,10 +96,9 @@ func TestSQLDump(t *testing.T) {
 			atomic.AddInt64(&itemCounter, int64(1))
 			return nil
 		},
-		Item:            new(map[string]interface{}),
-		FileType:        mediawiki.SQLDump,
-		Compression:     mediawiki.GZIP,
-		DecodingThreads: 1,
+		Item:        new(map[string]interface{}),
+		FileType:    mediawiki.SQLDump,
+		Compression: mediawiki.GZIP,
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, int64(9057), itemCounter)
