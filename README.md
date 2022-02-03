@@ -11,6 +11,7 @@ Features:
 
 * Supports [Wikidata entities JSON dumps](https://dumps.wikimedia.org/wikidatawiki/entities/).
 * Supports [Wikimedia Enterprise HTML dumps](https://dumps.wikimedia.org/other/enterprise_html/).
+* Supports [Wikimedia Commons entities dumps](https://dumps.wikimedia.org/commonswiki/entities/)
 * Decompression and JSON decoding is parallelized for maximum throughput on a single machine.
 * Parses into idiomatic Go structs, with no loss of information.
 * Can download and process a dump at the same time.

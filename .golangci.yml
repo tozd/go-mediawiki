@@ -96,3 +96,9 @@ issues:
     - path: entity_test\.go
       linters:
         - testpackage
+    - path: commons\.go
+      linters:
+        - dupl
+    - path: wikidata\.go
+      linters:
+        - dupl

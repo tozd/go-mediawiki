@@ -13,14 +13,15 @@ import (
 	"gitlab.com/tozd/go/x"
 )
 
+var timeRegex = regexp.MustCompile(`^([+-]\d{4,})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$`)
+
 type EntityType int
 
 const (
 	Item EntityType = iota
 	Property
+	MediaInfo
 )
-
-var timeRegex = regexp.MustCompile(`^([+-]\d{4,})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$`)
 
 func (t EntityType) MarshalJSON() ([]byte, error) {
 	buffer := bytes.NewBufferString(`"`)
@@ -29,6 +30,8 @@ func (t EntityType) MarshalJSON() ([]byte, error) {
 		buffer.WriteString("item")
 	case Property:
 		buffer.WriteString("property")
+	case MediaInfo:
+		buffer.WriteString("mediainfo")
 	}
 	buffer.WriteString(`"`)
 	return buffer.Bytes(), nil
@@ -45,6 +48,8 @@ func (t *EntityType) UnmarshalJSON(b []byte) error {
 		*t = Item
 	case "property":
 		*t = Property
+	case "mediainfo":
+		*t = MediaInfo
 	default:
 		return errors.Errorf("unknown entity type: %s", s)
 	}
@@ -836,6 +841,21 @@ type Entity struct {
 	Descriptions map[string]LanguageValue   `json:"descriptions,omitempty"`
 	Aliases      map[string][]LanguageValue `json:"aliases,omitempty"`
 	Claims       map[string][]Statement     `json:"claims,omitempty"`
+	SiteLinks    map[string]SiteLink        `json:"sitelinks,omitempty"`
+	LastRevID    int64                      `json:"lastrevid"`
+}
+
+// CommonsEntity is a Wikimedia Commons entities JSON dump entity.
+// The only difference is that it Claims are named "statements" in
+// the JSON. We use it to parse JSON and then we cast it to Entity.
+type commonsEntity struct {
+	ID           string                     `json:"id"`
+	Type         EntityType                 `json:"type"`
+	DataType     *DataType                  `json:"datatype,omitempty"`
+	Labels       map[string]LanguageValue   `json:"labels,omitempty"`
+	Descriptions map[string]LanguageValue   `json:"descriptions,omitempty"`
+	Aliases      map[string][]LanguageValue `json:"aliases,omitempty"`
+	Claims       map[string][]Statement     `json:"statements,omitempty"`
 	SiteLinks    map[string]SiteLink        `json:"sitelinks,omitempty"`
 	LastRevID    int64                      `json:"lastrevid"`
 }

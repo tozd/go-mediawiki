@@ -36,6 +36,9 @@ func TestCompression(t *testing.T) {
 		{"wikidata-testdata-all.json", mediawiki.NoCompression, mediawiki.JSONArray, 10},
 		{"wikidata-testdata-all.json.bz2", mediawiki.BZIP2, mediawiki.JSONArray, 10},
 		{"wikidata-testdata-all.json.gz", mediawiki.GZIP, mediawiki.JSONArray, 10},
+		{"commons-testdata-mediainfo.json", mediawiki.NoCompression, mediawiki.JSONArray, 10},
+		{"commons-testdata-mediainfo.json.bz2", mediawiki.BZIP2, mediawiki.JSONArray, 10},
+		{"commons-testdata-mediainfo.json.gz", mediawiki.GZIP, mediawiki.JSONArray, 10},
 	}
 
 	for _, test := range tests {
