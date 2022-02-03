@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support for Wikimedia Commons entities dumps.
+- Support for SQL dumps.
+
+## Changed
+
+- `JSONDecodeThreads` field in `ProcessDumpConfig` has been renamed to `DecodingThreads`.
+  Similarly in `ProcessWikipediaDump` and `ProcessWikidataDump`.
+- `EntityType` enumeration has been extended with `MediaInfo`.
+- `FileType` enumeration has been extended with `SQLDump`.
+
 ## [0.4.0] - 2022-01-26
 
 ### Changed
