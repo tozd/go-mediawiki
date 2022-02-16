@@ -3,82 +3,42 @@ package mediawiki
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"path"
-	"strings"
 
-	"github.com/foolin/pagser"
 	"github.com/hashicorp/go-retryablehttp"
 	"gitlab.com/tozd/go/errors"
 )
 
-const (
-	wikipediaRuns = "https://dumps.wikimedia.org/other/enterprise_html/runs/"
-)
-
-type runs struct {
-	Links []string `pagser:"a->eachAttr(href)"`
+// LatestWikipediaRun returns URL of the latest run of Wikimedia Enterprise HTML dump.
+// Use "enwiki" for English Wikipedia and namespace 0 for its articles.
+func LatestWikipediaRun(client *retryablehttp.Client, language string, namespace int) (string, errors.E) {
+	format := fmt.Sprintf("https://dumps.wikimedia.org/other/enterprise_html/runs/%%s/%s-NS%d-%%s-ENTERPRISE-HTML.json.tar.gz", language, namespace)
+	return latestRun(
+		client,
+		"https://dumps.wikimedia.org/other/enterprise_html/runs/",
+		format,
+	)
 }
 
-func latestWikipediaRun(client *retryablehttp.Client) (string, errors.E) {
-	resp, err := client.Get(wikipediaRuns)
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-	defer resp.Body.Close()
-
-	p := pagser.New()
-
-	var data runs
-	err = p.ParseReader(&data, resp.Body)
-	if err != nil {
-		return "", errors.WithStack(err)
-	}
-
-	for i, link := range data.Links {
-		data.Links[i] = strings.TrimSuffix(link, "/")
-	}
-
-	lastDate := data.Links[len(data.Links)-1]
-
-	return fmt.Sprintf("https://dumps.wikimedia.org/other/enterprise_html/runs/%s/enwiki-NS0-%s-ENTERPRISE-HTML.json.tar.gz", lastDate, lastDate), nil
+// LatestWikipediaImageMetadataRun returns URL of the latest run of Wikipedia image table dump.
+// Use "enwiki" for English Wikipedia.
+func LatestWikipediaImageMetadataRun(client *retryablehttp.Client, language string) (string, errors.E) {
+	format := fmt.Sprintf("https://dumps.wikimedia.org/enwiki/%%s/%s-%%s-image.sql.gz", language)
+	return latestRun(
+		client,
+		fmt.Sprintf("https://dumps.wikimedia.org/%s/", language),
+		format,
+	)
 }
 
-// ProcessWikipediaDump downloads (unless already cached), decompresses, decodes JSON,
+// ProcessWikipediaDump downloads (unless already saves), decompresses, decodes JSON,
 // and calls processArticle on every article in a Wikimedia Enterprise HTML dump.
 func ProcessWikipediaDump(
 	ctx context.Context, config *ProcessDumpConfig,
 	processArticle func(context.Context, Article) errors.E,
 ) errors.E {
-	if config.Client == nil {
-		return errors.New("client is a required configuration option")
-	}
-	var url, cacheGlob string
-	var cacheFilename func(*http.Response) (string, errors.E)
-	if config.URL != "" {
-		url = config.URL
-		filename := path.Base(url)
-		cacheGlob = filename
-		cacheFilename = func(_ *http.Response) (string, errors.E) {
-			return filename, nil
-		}
-	} else {
-		var err errors.E
-		url, err = latestWikipediaRun(config.Client)
-		if err != nil {
-			return errors.Wrap(err, "unable to determine the latest English Wikipedia dump run")
-		}
-		cacheGlob = "enwiki-NS0-*-ENTERPRISE-HTML.json.tar.gz"
-		filename := path.Base(url)
-		cacheFilename = func(_ *http.Response) (string, errors.E) {
-			return filename, nil
-		}
-	}
 	return Process(ctx, &ProcessConfig{
-		URL:                    url,
-		CacheDir:               config.CacheDir,
-		CacheGlob:              cacheGlob,
-		CacheFilename:          cacheFilename,
+		URL:                    config.URL,
+		Path:                   config.Path,
 		Client:                 config.Client,
 		DecompressionThreads:   config.DecompressionThreads,
 		DecodingThreads:        config.DecodingThreads,

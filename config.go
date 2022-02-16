@@ -9,7 +9,8 @@ import (
 
 // ProcessDumpConfig is a configuration for high-level Process*Dump functions.
 //
-// Client is required.
+// URL or Path are required.
+// If URL is provided and Path does not already exist, Client is required, too.
 //
 // Client should set User-Agent header with contact information, e.g.:
 //
@@ -19,7 +20,7 @@ import (
 //     }
 type ProcessDumpConfig struct {
 	URL                    string
-	CacheDir               string
+	Path                   string
 	Client                 *retryablehttp.Client
 	DecompressionThreads   int
 	DecodingThreads        int

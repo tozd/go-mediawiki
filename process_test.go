@@ -18,43 +18,57 @@ const (
 	testUserAgent    = "Unit test user agent (https://gitlab.com/tozd/go/mediawiki)"
 )
 
-func TestCompression(t *testing.T) {
+var compressionTests = []struct {
+	name        string
+	compression mediawiki.Compression
+	dumpType    mediawiki.FileType
+	items       int
+}{
+	{"enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar", mediawiki.Tar, mediawiki.NDJSON, 10},
+	{"enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar.bz2", mediawiki.BZIP2Tar, mediawiki.NDJSON, 10},
+	{"enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar.gz", mediawiki.GZIPTar, mediawiki.NDJSON, 10},
+	{"wikidata-testdata-all.json", mediawiki.NoCompression, mediawiki.JSONArray, 10},
+	{"wikidata-testdata-all.json.bz2", mediawiki.BZIP2, mediawiki.JSONArray, 10},
+	{"wikidata-testdata-all.json.gz", mediawiki.GZIP, mediawiki.JSONArray, 10},
+	{"commons-testdata-mediainfo.json", mediawiki.NoCompression, mediawiki.JSONArray, 10},
+	{"commons-testdata-mediainfo.json.bz2", mediawiki.BZIP2, mediawiki.JSONArray, 10},
+	{"commons-testdata-mediainfo.json.gz", mediawiki.GZIP, mediawiki.JSONArray, 10},
+}
+
+func TestCompressionRemote(t *testing.T) {
 	client := retryablehttp.NewClient()
 	client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
 		req.Header.Set("User-Agent", testUserAgent)
 	}
 
-	tests := []struct {
-		name        string
-		compression mediawiki.Compression
-		dumpType    mediawiki.FileType
-		items       int
-	}{
-		{"enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar", mediawiki.Tar, mediawiki.NDJSON, 10},
-		{"enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar.bz2", mediawiki.BZIP2Tar, mediawiki.NDJSON, 10},
-		{"enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar.gz", mediawiki.GZIPTar, mediawiki.NDJSON, 10},
-		{"wikidata-testdata-all.json", mediawiki.NoCompression, mediawiki.JSONArray, 10},
-		{"wikidata-testdata-all.json.bz2", mediawiki.BZIP2, mediawiki.JSONArray, 10},
-		{"wikidata-testdata-all.json.gz", mediawiki.GZIP, mediawiki.JSONArray, 10},
-		{"commons-testdata-mediainfo.json", mediawiki.NoCompression, mediawiki.JSONArray, 10},
-		{"commons-testdata-mediainfo.json.bz2", mediawiki.BZIP2, mediawiki.JSONArray, 10},
-		{"commons-testdata-mediainfo.json.gz", mediawiki.GZIP, mediawiki.JSONArray, 10},
-	}
-
-	for _, test := range tests {
+	for _, test := range compressionTests {
 		t.Run(test.name, func(t *testing.T) {
-			cacheDir := t.TempDir()
-
 			itemCounter := int64(0)
 
 			err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig{
-				URL:       testFilesBaseURL + test.name,
-				CacheDir:  cacheDir,
-				CacheGlob: test.name,
-				CacheFilename: func(_ *http.Response) (string, errors.E) {
-					return test.name, nil
-				},
+				URL:    testFilesBaseURL + test.name,
 				Client: client,
+				Process: func(ctx context.Context, i interface{}) errors.E {
+					atomic.AddInt64(&itemCounter, int64(1))
+					return nil
+				},
+				Item:        new(interface{}),
+				FileType:    test.dumpType,
+				Compression: test.compression,
+			})
+			assert.NoError(t, err)
+			assert.Equal(t, int64(test.items), itemCounter)
+		})
+	}
+}
+
+func TestCompressionLocal(t *testing.T) {
+	for _, test := range compressionTests {
+		t.Run(test.name, func(t *testing.T) {
+			itemCounter := int64(0)
+
+			err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig{
+				Path: "testdata/" + test.name,
 				Process: func(ctx context.Context, i interface{}) errors.E {
 					atomic.AddInt64(&itemCounter, int64(1))
 					return nil
@@ -75,17 +89,10 @@ func TestSQLDump(t *testing.T) {
 		req.Header.Set("User-Agent", testUserAgent)
 	}
 
-	cacheDir := t.TempDir()
-
 	itemCounter := int64(0)
 
 	err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig{
-		URL:       testFilesBaseURL + "commonswiki-20220120-image.sql.gz",
-		CacheDir:  cacheDir,
-		CacheGlob: "commonswiki-20220120-image.sql.gz",
-		CacheFilename: func(_ *http.Response) (string, errors.E) {
-			return "commonswiki-20220120-image.sql.gz", nil
-		},
+		URL:    testFilesBaseURL + "commonswiki-20220120-image.sql.gz",
 		Client: client,
 		Process: func(ctx context.Context, i interface{}) errors.E {
 			m := *i.(*map[string]interface{})

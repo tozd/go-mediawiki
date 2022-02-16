@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
@@ -153,7 +152,14 @@ const (
 
 // ProcessConfig is a configuration for low-level Process function.
 //
-// URL, Client, Process, Item, FileType, and Compression are required.
+// URL or Path, Process, Item, FileType, and Compression are required.
+// If URL is provided and Path does not already exist, Client is required, too.
+//
+// If just URL is provided, but not Path, then Process downloads and processes
+// the file at URL, but does not save it. If both URL and Path are provided,
+// and there file at Path does not exist, then Process saves the file at Path
+// while downloading and processing the file at URL. If the file at Path already
+// exists, then Process just uses it as-is and does not download anything from URL.
 //
 // Client should set User-Agent header with contact information, e.g.:
 //
@@ -163,9 +169,7 @@ const (
 //     }
 type ProcessConfig struct {
 	URL                    string
-	CacheDir               string
-	CacheGlob              string
-	CacheFilename          func(*http.Response) (string, errors.E)
+	Path                   string
 	Client                 *retryablehttp.Client
 	DecompressionThreads   int
 	DecodingThreads        int
@@ -186,45 +190,38 @@ func getFileRows(
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	var matches []string
-	var err error
-	if config.CacheDir != "" && config.CacheGlob != "" {
-		matches, err = filepath.Glob(filepath.Join(config.CacheDir, config.CacheGlob))
-		if err != nil {
-			errs <- errors.WithStack(err)
-			return
-		}
-	}
-
 	var compressedReader io.Reader
 	var compressedSize int64
 	var timer *time.Timer
 
-	if len(matches) == 1 {
-		// If we file is already cached, we use it.
-		compressedFile, err := os.Open(matches[0]) //nolint:govet
+	if config.Path != "" {
+		// If we file is already available, we use it.
+		compressedFile, err := os.Open(config.Path)
 		if err != nil {
-			errs <- errors.WithStack(err)
-			return
+			if !errors.Is(err, os.ErrNotExist) {
+				errs <- errors.WithStack(err)
+				return
+			}
+			// File does not exists. Continue.
+		} else {
+			defer compressedFile.Close()
+			compressedReader = compressedFile
+			compressedSize, err = compressedFile.Seek(0, io.SeekEnd)
+			if err != nil {
+				errs <- errors.WithStack(err)
+				return
+			}
+			_, err = compressedFile.Seek(0, io.SeekStart)
+			if err != nil {
+				errs <- errors.WithStack(err)
+				return
+			}
 		}
-		defer compressedFile.Close()
-		compressedReader = compressedFile
-		compressedSize, err = compressedFile.Seek(0, io.SeekEnd)
-		if err != nil {
-			errs <- errors.WithStack(err)
-			return
-		}
-		_, err = compressedFile.Seek(0, io.SeekStart)
-		if err != nil {
-			errs <- errors.WithStack(err)
-			return
-		}
-	} else if len(matches) > 1 {
-		errs <- errors.Errorf(`too many cached files matching pattern "%s" in "%s": %d`, config.CacheGlob, config.CacheDir, len(matches))
-		return
-	} else {
-		// Otherwise we download the file and cache it.
-		req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, config.URL, nil) //nolint:govet
+	}
+
+	if compressedReader == nil {
+		// File does not already exist. We download the file and optionally save it.
+		req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, config.URL, nil)
 		if err != nil {
 			errs <- errors.WithStack(err)
 			return
@@ -236,23 +233,17 @@ func getFileRows(
 		}
 		defer downloadReader.Close()
 		compressedSize = downloadReader.Size()
-		if config.CacheDir != "" && config.CacheFilename != nil {
-			filename, errE := config.CacheFilename(downloadReader.Response)
-			if errE != nil {
-				errs <- errE
-				return
-			}
-			p := filepath.Join(config.CacheDir, filename)
-			compressedFile, err := os.Create(p)
+		if config.Path != "" {
+			compressedFile, err := os.Create(config.Path)
 			if err != nil {
 				errs <- errors.WithStack(err)
 				return
 			}
 			defer func() {
-				info, err := os.Stat(p)
+				info, err := os.Stat(config.Path)
 				if err != nil || downloadReader.Size() != info.Size() {
 					// Incomplete file. Delete.
-					_ = os.Remove(p)
+					_ = os.Remove(config.Path)
 				}
 			}()
 			defer compressedFile.Close()
@@ -292,7 +283,7 @@ func getFileRows(
 			),
 		)
 	case GZIP, GZIPTar:
-		gzipReader, err := gzip.NewReader(countingReader) //nolint:govet
+		gzipReader, err := gzip.NewReader(countingReader)
 		if err != nil {
 			errs <- errors.WithStack(err)
 			return
@@ -312,7 +303,7 @@ func getFileRows(
 	for {
 		if config.Compression == Tar || config.Compression == GZIPTar || config.Compression == BZIP2Tar {
 			// Go to the first or next file in gzip/tar.
-			_, err = decompressedReader.(*tar.Reader).Next()
+			_, err := decompressedReader.(*tar.Reader).Next()
 			if err != nil {
 				// When there are no more files in gzip/tar, Next returns io.EOF.
 				if errors.Is(err, io.EOF) {
@@ -335,7 +326,7 @@ func getFileRows(
 
 		if config.FileType == JSONArray {
 			// Read open bracket.
-			_, err = (*json.Decoder)(iter.(*jsonIterator)).Token()
+			_, err := (*json.Decoder)(iter.(*jsonIterator)).Token()
 			if err != nil {
 				errs <- errors.WithStack(err)
 				return
@@ -364,7 +355,7 @@ func getFileRows(
 
 		if config.FileType == JSONArray {
 			// Read closing bracket.
-			_, err = (*json.Decoder)(iter.(*jsonIterator)).Token()
+			_, err := (*json.Decoder)(iter.(*jsonIterator)).Token()
 			if err != nil {
 				errs <- errors.WithStack(err)
 				return
@@ -559,9 +550,8 @@ func processItems(
 // extacts JSONs or SQL statements from it (stored in FileType types), decodes JSONs or SQL statements, and
 // calls Process callback on each decoded JSON or SQL statement. All that in parallel fashion, controlled by
 // DecompressionThreads, DecodingThreads, and ItemsProcessingThreads. File is downloaded from a HTTP URL and is
-// processed already during download. Downloaded file is optionally cached to local storage (to CacheDir
-// directory, with filename as determined by CacheFile) and followup calls to Process use a cached file
-// (if it matches CacheGlob, which should match at most one file).
+// processed already during download. Downloaded file is optionally saved (to a file at Path) and followup
+// calls to Process can use a saved file (if same Path is provided).
 func Process(ctx context.Context, config *ProcessConfig) errors.E {
 	if config.DecompressionThreads == 0 {
 		config.DecompressionThreads = runtime.GOMAXPROCS(0)

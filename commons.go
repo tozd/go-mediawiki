@@ -4,56 +4,31 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"path"
 	"strings"
 
 	"github.com/elliotchance/phpserialize"
+	"github.com/hashicorp/go-retryablehttp"
 	"gitlab.com/tozd/go/errors"
 )
 
-const (
-	latestCommonsMediaInfo = "https://dumps.wikimedia.org/commonswiki/entities/latest-mediainfo.json.bz2"
-)
+// LatestWikipediaRun returns URL of the latest run of Wikimedia Commons entities JSON dump.
+func LatestCommonsEntitiesRun(client *retryablehttp.Client) (string, errors.E) {
+	return latestRun(
+		client,
+		"https://dumps.wikimedia.org/commonswiki/entities/",
+		"https://dumps.wikimedia.org/commonswiki/entities/%s/commons-%s-mediainfo.json.bz2",
+	)
+}
 
-// ProcessCommonsDump downloads (unless already cached), decompresses, decodes JSON,
+// ProcessCommonsEntitiesDump downloads (unless already saved), decompresses, decodes JSON,
 // and calls processEntity on every entity in a Wikimedia Commons entities JSON dump.
-func ProcessCommonsDump(
+func ProcessCommonsEntitiesDump(
 	ctx context.Context, config *ProcessDumpConfig,
 	processEntity func(context.Context, Entity) errors.E,
 ) errors.E {
-	if config.Client == nil {
-		return errors.New("client is a required configuration option")
-	}
-	var url, cacheGlob string
-	var cacheFilename func(*http.Response) (string, errors.E)
-	if config.URL != "" {
-		url = config.URL
-		filename := path.Base(url)
-		cacheGlob = filename
-		cacheFilename = func(_ *http.Response) (string, errors.E) {
-			return filename, nil
-		}
-	} else {
-		url = latestCommonsMediaInfo
-		cacheGlob = "commons-*-mediainfo.json.bz2"
-		cacheFilename = func(resp *http.Response) (string, errors.E) {
-			lastModifiedStr := resp.Header.Get("Last-Modified")
-			if lastModifiedStr == "" {
-				return "", errors.Errorf("missing Last-Modified header in response")
-			}
-			lastModified, err := http.ParseTime(lastModifiedStr)
-			if err != nil {
-				return "", errors.WithStack(err)
-			}
-			return fmt.Sprintf("commons-%s-mediainfo.json.bz2", lastModified.UTC().Format("20060102")), nil
-		}
-	}
 	return Process(ctx, &ProcessConfig{
-		URL:                    url,
-		CacheDir:               config.CacheDir,
-		CacheGlob:              cacheGlob,
-		CacheFilename:          cacheFilename,
+		URL:                    config.URL,
+		Path:                   config.Path,
 		Client:                 config.Client,
 		DecompressionThreads:   config.DecompressionThreads,
 		DecodingThreads:        config.DecodingThreads,
@@ -88,6 +63,15 @@ func convertToStringMapsMap(m map[interface{}]interface{}) map[string]interface{
 	}
 
 	return out
+}
+
+// LatestCommonsImageMetadataRun returns URL of the latest run of Wikimedia Commons image table dump.
+func LatestCommonsImageMetadataRun(client *retryablehttp.Client) (string, errors.E) {
+	return latestRun(
+		client,
+		"https://dumps.wikimedia.org/commonswiki/",
+		"https://dumps.wikimedia.org/commonswiki/%s/commonswiki-%s-image.sql.gz",
+	)
 }
 
 // DecodeImageMetadata decodes image and other uploaded files metadata column in
