@@ -192,7 +192,6 @@ func getFileRows(
 
 	var compressedReader io.Reader
 	var compressedSize int64
-	var timer *time.Timer
 
 	if config.Path != "" {
 		// If we file is already available, we use it.
@@ -251,22 +250,13 @@ func getFileRows(
 		} else {
 			compressedReader = downloadReader
 		}
-		// TODO: Better error message when canceled.
-		//       See: https://github.com/golang/go/issues/26356
-		timer = time.AfterFunc(staleReadTimeout, cancel)
-		defer timer.Stop()
 	}
 
 	countingReader := &x.CountingReader{Reader: compressedReader}
 	ticker := x.NewTicker(ctx, countingReader, compressedSize, progressPrintRate)
 	defer ticker.Stop()
 	go func() {
-		compressedRead := int64(0)
 		for progress := range ticker.C {
-			if timer != nil && compressedRead != progress.Count {
-				timer.Reset(staleReadTimeout)
-				compressedRead = progress.Count
-			}
 			if config.Progress != nil {
 				config.Progress(ctx, progress)
 			}

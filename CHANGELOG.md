@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Changed
+
+- Stale download timeout has been removed because it can lead to false positives
+  when processing is slower than downloading.
+
 ## [0.6.0] - 2022-02-16
 
 ### Added
