@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Utility functions to determine the latest dump's URL:
+  `LatestCommonsEntitiesRun`, `LatestCommonsImageMetadataRun`,
+  `LatestWikidataEntitiesRun`, `LatestWikipediaImageMetadataRun`,
+  `LatestWikipediaRun`.
+
+## Changed
+
+- High-level function do not anymore automatically determine the latest dump's URL.
+  This logic is now in separate utility functions.
+- Low-level `Process` function and high-level functions do not deal with cache location
+  anymore but accept `URL` and `Path` arguments which directly control what is downloaded
+  and where it is stored (or used from if already stored).
+
 ## [0.5.0] - 2022-02-04
 
 ### Added
