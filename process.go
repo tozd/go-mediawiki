@@ -29,7 +29,6 @@ import (
 
 const (
 	progressPrintRate = 30 * time.Second
-	staleReadTimeout  = 60 * time.Second
 )
 
 type syncVar struct {
