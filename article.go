@@ -105,7 +105,7 @@ type Article struct {
 	URL                string       `json:"url"`
 	Namespace          Namespace    `json:"namespace"`
 	InLanguage         InLanguage   `json:"in_language"`
-	MainEntity         EntityRef    `json:"main_entity"`
+	MainEntity         *EntityRef   `json:"main_entity,omitempty"`
 	AdditionalEntities []EntityRef  `json:"additional_entities,omitempty"`
 	Categories         []Category   `json:"categories,omitempty"`
 	Templates          []Template   `json:"templates,omitempty"`
