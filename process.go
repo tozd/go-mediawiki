@@ -25,6 +25,7 @@ import (
 	"github.com/pingcap/parser/test_driver"
 	"gitlab.com/tozd/go/errors"
 	"gitlab.com/tozd/go/x"
+	"golang.org/x/text/unicode/norm"
 )
 
 const (
@@ -455,7 +456,7 @@ func decodeRows(
 				case *ast.CreateTableStmt:
 					cols := []string{}
 					for _, col := range s.Cols {
-						cols = append(cols, col.Name.Name.O)
+						cols = append(cols, norm.NFC.String(col.Name.Name.O))
 					}
 					// Share columns with other goroutines.
 					err := decodeRowsState.Store(cols)
@@ -487,7 +488,7 @@ func decodeRows(
 								// string length (and that of all substrings) at the same time.
 								z = makeValid(zz)
 							}
-							v[columns[i]] = z
+							v[columns[i]] = norm.NFC.String(z)
 						}
 						// We marshal to JSON to decode to a struct if provided.
 						d, err := x.MarshalWithoutEscapeHTML(v)

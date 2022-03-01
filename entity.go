@@ -11,6 +11,7 @@ import (
 
 	"gitlab.com/tozd/go/errors"
 	"gitlab.com/tozd/go/x"
+	"golang.org/x/text/unicode/norm"
 )
 
 var timeRegex = regexp.MustCompile(`^([+-]\d{4,})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$`)
@@ -663,20 +664,20 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 		return errors.WithStack(err)
 	}
 	if t.Error != "" {
-		v.Value = ErrorValue(t.Error)
+		v.Value = ErrorValue(norm.NFC.String(t.Error))
 		return nil
 	}
 	switch t.Type {
 	case "string":
 		var t struct {
-			Type  string      `json:"type"`
-			Value StringValue `json:"value"`
+			Type  string `json:"type"`
+			Value string `json:"value"`
 		}
 		err := x.UnmarshalWithoutUnknownFields(b, &t)
 		if err != nil {
 			return err
 		}
-		v.Value = t.Value
+		v.Value = StringValue(norm.NFC.String(t.Value))
 	case "wikibase-entityid":
 		var t struct {
 			Type string `json:"type"`
@@ -694,7 +695,7 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 		}
 		v.Value = WikiBaseEntityIDValue{
 			Type: t.Value.Type,
-			ID:   t.Value.ID,
+			ID:   norm.NFC.String(t.Value.ID),
 		}
 	case "globecoordinate":
 		var t struct {
@@ -728,6 +729,7 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 		if err != nil {
 			return err
 		}
+		t.Value.Text = norm.NFC.String(t.Value.Text)
 		v.Value = t.Value
 	case "quantity":
 		var t struct {
