@@ -488,7 +488,7 @@ func decodeRows(
 								// string length (and that of all substrings) at the same time.
 								z = makeValid(zz)
 							}
-							v[columns[i]] = norm.NFC.String(z)
+							v[columns[i]] = z
 						}
 						// We marshal to JSON to decode to a struct if provided.
 						d, err := x.MarshalWithoutEscapeHTML(v)
