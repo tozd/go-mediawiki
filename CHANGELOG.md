@@ -7,15 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- All string data is normalized to Unicode NFC.
+
 ## [0.8.0] - 2022-02-17
 
-## Changed
+### Changed
 
 - `MainEntity` of `Article` struct is a pointer now because it might be missing.
 
 ## [0.7.0] - 2022-02-16
 
-## Changed
+### Changed
 
 - Stale download timeout has been removed because it can lead to false positives
   when processing is slower than downloading.
@@ -29,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `LatestWikidataEntitiesRun`, `LatestWikipediaImageMetadataRun`,
   `LatestWikipediaRun`.
 
-## Changed
+### Changed
 
 - High-level function do not anymore automatically determine the latest dump's URL.
   This logic is now in separate utility functions.
@@ -44,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Wikimedia Commons entities dumps.
 - Support for SQL dumps.
 
-## Changed
+### Changed
 
 - `JSONDecodeThreads` field in `ProcessDumpConfig` has been renamed to `DecodingThreads`.
   Similarly in `ProcessWikipediaDump` and `ProcessWikidataDump`.
