@@ -560,64 +560,43 @@ func (v DataValue) MarshalJSON() ([]byte, error) {
 		b, err := x.MarshalWithoutEscapeHTML(struct {
 			Error ErrorValue `json:"error"`
 		}{value})
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		return b, err
+		return b, errors.WithStack(err)
 	case StringValue:
 		b, err := x.MarshalWithoutEscapeHTML(struct {
 			Type  string      `json:"type"`
 			Value StringValue `json:"value"`
 		}{"string", value})
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		return b, err
+		return b, errors.WithStack(err)
 	case WikiBaseEntityIDValue:
 		b, err := x.MarshalWithoutEscapeHTML(struct {
 			Type  string                `json:"type"`
 			Value WikiBaseEntityIDValue `json:"value"`
 		}{"wikibase-entityid", value})
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		return b, err
+		return b, errors.WithStack(err)
 	case GlobeCoordinateValue:
 		b, err := x.MarshalWithoutEscapeHTML(struct {
 			Type  string               `json:"type"`
 			Value GlobeCoordinateValue `json:"value"`
 		}{"globecoordinate", value})
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		return b, err
+		return b, errors.WithStack(err)
 	case MonolingualTextValue:
 		b, err := x.MarshalWithoutEscapeHTML(struct {
 			Type  string               `json:"type"`
 			Value MonolingualTextValue `json:"value"`
 		}{"monolingualtext", value})
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		return b, err
+		return b, errors.WithStack(err)
 	case QuantityValue:
 		b, err := x.MarshalWithoutEscapeHTML(struct {
 			Type  string        `json:"type"`
 			Value QuantityValue `json:"value"`
 		}{"quantity", value})
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		return b, err
+		return b, errors.WithStack(err)
 	case TimeValue:
 		b, err := x.MarshalWithoutEscapeHTML(struct {
 			Type  string    `json:"type"`
 			Value TimeValue `json:"value"`
 		}{"time", value})
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		return b, err
+		return b, errors.WithStack(err)
 	}
 	return nil, errors.Errorf(`unknown data value type: %+v`, v.Value)
 }
