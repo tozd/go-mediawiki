@@ -28,7 +28,7 @@ This is a Go package. You can add it to your project using `go get`:
 go get gitlab.com/tozd/go/mediawiki
 ```
 
-There is also a [read-only GitHub mirror available](https://github.com/tozd/go-errors),
+There is also a [read-only GitHub mirror available](https://github.com/tozd/go-mediawiki),
 if you need to fork the project there.
 
 ## Usage
