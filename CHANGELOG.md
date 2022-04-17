@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Implementation now uses Go generics and Go 1.18 or newer is now required.
+  `ProcessConfig` has no more `Item` field and instead has a type parameter.
+
 ## [0.8.1] - 2022-03-01
 
 ### Fixed
