@@ -9,16 +9,11 @@ test:
 
   image: golang:$IMAGE_TAG
 
-  variables:
-    # We set GO111MODULE so that we can use "go get" instead of "go install"
-    # for all Go versions in the parallel matrix.
-    GO111MODULE: 'on'
-
   before_script:
     - apk --update add make gcc musl-dev git-lfs
     - git lfs fetch
-    - (cd /go; go get gotest.tools/gotestsum@v1.8.0)
-    - (cd /go; go get github.com/boumenot/gocover-cobertura@v1.2.0)
+    - (cd /go; go install gotest.tools/gotestsum@v1.8.0)
+    - (cd /go; go install github.com/boumenot/gocover-cobertura@v1.2.0)
 
   script:
     - make test-ci
