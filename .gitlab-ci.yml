@@ -17,7 +17,7 @@ test:
   before_script:
     - apk --update add make gcc musl-dev git-lfs
     - git lfs fetch
-    - (cd /go; go get gotest.tools/gotestsum@v1.7.0)
+    - (cd /go; go get gotest.tools/gotestsum@v1.8.0)
     - (cd /go; go get github.com/boumenot/gocover-cobertura@v1.2.0)
 
   script:
@@ -37,16 +37,16 @@ test:
 
   parallel:
     matrix:
-      - IMAGE_TAG: ['1.16-alpine3.14', '1.17-alpine3.14']
+      - IMAGE_TAG: ['1.18-alpine3.14']
 
 lint:
   stage: test
 
-  image: golang:1.17-alpine3.14
+  image: golang:1.18-alpine3.14
 
   before_script:
     - apk --update add make gcc musl-dev
-    - wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.43.0
+    - wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.45.2
 
   script:
     - make lint-ci
@@ -60,13 +60,13 @@ lint:
 fmt:
   stage: test
 
-  image: golang:1.17-alpine3.14
+  image: golang:1.18-alpine3.14
 
   before_script:
     - apk --update add make git gcc musl-dev grep git-lfs
     - git lfs fetch
-    - go install mvdan.cc/gofumpt@v0.2.0
-    - go install golang.org/x/tools/cmd/goimports@v0.1.7
+    - go install mvdan.cc/gofumpt@v0.3.1
+    - go install golang.org/x/tools/cmd/goimports@v0.1.10
 
   script:
     - make fmt-ci
@@ -85,12 +85,12 @@ lint_docs:
 audit:
   stage: test
 
-  image: golang:1.17-alpine3.14
+  image: golang:1.18-alpine3.14
 
   before_script:
     - apk --update add make git gcc musl-dev git-lfs
     - git lfs fetch
-    - go install github.com/sonatype-nexus-community/nancy@v1.0.29
+    - go install github.com/sonatype-nexus-community/nancy@v1.0.33
 
   script:
     - make audit
@@ -98,7 +98,7 @@ audit:
 commits:
   stage: test
 
-  image: golang:1.17-alpine3.14
+  image: golang:1.18-alpine3.14
 
   variables:
     GIT_DEPTH: "0"
@@ -112,7 +112,7 @@ commits:
 publish:
   stage: deploy
 
-  image: golang:1.17-alpine3.14
+  image: golang:1.18-alpine3.14
 
   script:
     - GOPROXY=proxy.golang.org go list -m "gitlab.com/tozd/go/mediawiki@$CI_COMMIT_REF_NAME"

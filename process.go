@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -152,7 +151,7 @@ const (
 
 // ProcessConfig is a configuration for low-level Process function.
 //
-// URL or Path, Process, Item, FileType, and Compression are required.
+// URL or Path, Process, FileType, and Compression are required.
 // If URL is provided and Path does not already exist, Client is required, too.
 //
 // If just URL is provided, but not Path, then Process downloads and processes
@@ -167,22 +166,21 @@ const (
 //     client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
 //     	req.Header.Set("User-Agent", "My bot (user@example.com)")
 //     }
-type ProcessConfig struct {
+type ProcessConfig[T any] struct {
 	URL                    string
 	Path                   string
 	Client                 *retryablehttp.Client
 	DecompressionThreads   int
 	DecodingThreads        int
 	ItemsProcessingThreads int
-	Process                func(context.Context, interface{}) errors.E
+	Process                func(context.Context, T) errors.E
 	Progress               func(context.Context, x.Progress)
-	Item                   interface{}
 	FileType               FileType
 	Compression            Compression
 }
 
-func getFileRows(
-	ctx context.Context, config *ProcessConfig, wg *sync.WaitGroup,
+func getFileRows[T any](
+	ctx context.Context, config *ProcessConfig[T], wg *sync.WaitGroup,
 	output chan<- []byte, errs chan<- errors.E,
 ) {
 	defer wg.Done()
@@ -407,8 +405,8 @@ func makeValid(s string) string {
 	return b.String()
 }
 
-func decodeJSON(ctx context.Context, itemType reflect.Type, r []byte, output chan<- interface{}, errs chan<- errors.E) {
-	e := reflect.New(itemType).Interface()
+func decodeJSON[T any](ctx context.Context, r []byte, output chan<- T, errs chan<- errors.E) {
+	var e T
 	errE := x.UnmarshalWithoutUnknownFields(r, &e)
 	if errE != nil {
 		errs <- errors.Wrapf(errE, "cannot decode json: %s", r)
@@ -422,13 +420,12 @@ func decodeJSON(ctx context.Context, itemType reflect.Type, r []byte, output cha
 	}
 }
 
-func decodeRows(
-	ctx context.Context, config *ProcessConfig, wg *sync.WaitGroup, decodeRowsState *syncVar,
-	input <-chan []byte, output chan<- interface{}, errs chan<- errors.E,
+func decodeRows[T any](
+	ctx context.Context, config *ProcessConfig[T], wg *sync.WaitGroup, decodeRowsState *syncVar,
+	input <-chan []byte, output chan<- T, errs chan<- errors.E,
 ) {
 	defer wg.Done()
 
-	itemType := reflect.TypeOf(config.Item).Elem()
 	sqlParser := parser.New()
 	var columns []string
 
@@ -496,14 +493,14 @@ func decodeRows(
 							errs <- errors.WithStack(err)
 							return
 						}
-						decodeJSON(ctx, itemType, d, output, errs)
+						decodeJSON(ctx, d, output, errs)
 					}
 				default:
 					errs <- errors.Errorf("unexpected statement %T: %s", stmt, row)
 					return
 				}
 			} else {
-				decodeJSON(ctx, itemType, row, output, errs)
+				decodeJSON(ctx, row, output, errs)
 			}
 		case <-ctx.Done():
 			errs <- errors.WithStack(ctx.Err())
@@ -512,9 +509,9 @@ func decodeRows(
 	}
 }
 
-func processItems(
-	ctx context.Context, config *ProcessConfig, wg *sync.WaitGroup,
-	input <-chan interface{}, errs chan<- errors.E,
+func processItems[T any](
+	ctx context.Context, config *ProcessConfig[T], wg *sync.WaitGroup,
+	input <-chan T, errs chan<- errors.E,
 ) {
 	defer wg.Done()
 
@@ -542,7 +539,7 @@ func processItems(
 // DecompressionThreads, DecodingThreads, and ItemsProcessingThreads. File is downloaded from a HTTP URL and is
 // processed already during download. Downloaded file is optionally saved (to a file at Path) and followup
 // calls to Process can use a saved file (if same Path is provided).
-func Process(ctx context.Context, config *ProcessConfig) errors.E {
+func Process[T any](ctx context.Context, config *ProcessConfig[T]) errors.E {
 	if config.DecompressionThreads == 0 {
 		config.DecompressionThreads = runtime.GOMAXPROCS(0)
 	}
@@ -568,7 +565,7 @@ func Process(ctx context.Context, config *ProcessConfig) errors.E {
 	defer close(errs)
 
 	rows := make(chan []byte, config.DecodingThreads)
-	items := make(chan interface{}, config.ItemsProcessingThreads)
+	items := make(chan T, config.ItemsProcessingThreads)
 
 	var getFileRowsWg sync.WaitGroup
 	mainWg.Add(1)

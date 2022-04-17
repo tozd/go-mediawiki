@@ -10,11 +10,11 @@ linters-settings:
   godot:
     scope: all
   gofumpt:
-    go: "1.17"
+    go: "1.18"
   goimports:
     local-prefixes: gitlab.com/tozd/go/mediawiki
   gosimple:
-    go: "1.17"
+    go: "1.18"
     checks:
       - all
   govet:
@@ -26,15 +26,15 @@ linters-settings:
     allow-leading-space: false
     require-specific: true
   stylecheck:
-    go: "1.17"
+    go: "1.18"
     checks:
       - all
   staticcheck:
-    go: "1.17"
+    go: "1.18"
     checks:
       - all
   unused:
-    go: "1.17"
+    go: "1.18"
 
 linters:
   disable-all: true

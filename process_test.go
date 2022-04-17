@@ -45,14 +45,13 @@ func TestCompressionRemote(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			itemCounter := int64(0)
 
-			err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig{
+			err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig[interface{}]{
 				URL:    testFilesBaseURL + test.name,
 				Client: client,
 				Process: func(ctx context.Context, i interface{}) errors.E {
 					atomic.AddInt64(&itemCounter, int64(1))
 					return nil
 				},
-				Item:        new(interface{}),
 				FileType:    test.dumpType,
 				Compression: test.compression,
 			})
@@ -67,13 +66,12 @@ func TestCompressionLocal(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			itemCounter := int64(0)
 
-			err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig{
+			err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig[interface{}]{
 				Path: "testdata/" + test.name,
 				Process: func(ctx context.Context, i interface{}) errors.E {
 					atomic.AddInt64(&itemCounter, int64(1))
 					return nil
 				},
-				Item:        new(interface{}),
 				FileType:    test.dumpType,
 				Compression: test.compression,
 			})
@@ -91,19 +89,17 @@ func TestSQLDump(t *testing.T) {
 
 	itemCounter := int64(0)
 
-	err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig{
+	err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig[map[string]interface{}]{
 		URL:    testFilesBaseURL + "commonswiki-20220120-image.sql.gz",
 		Client: client,
-		Process: func(ctx context.Context, i interface{}) errors.E {
-			m := *i.(*map[string]interface{})
-			_, err := mediawiki.DecodeImageMetadata(m["img_metadata"])
+		Process: func(ctx context.Context, i map[string]interface{}) errors.E {
+			_, err := mediawiki.DecodeImageMetadata(i["img_metadata"])
 			if err != nil {
 				return err
 			}
 			atomic.AddInt64(&itemCounter, int64(1))
 			return nil
 		},
-		Item:        new(map[string]interface{}),
 		FileType:    mediawiki.SQLDump,
 		Compression: mediawiki.GZIP,
 	})

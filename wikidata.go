@@ -22,19 +22,16 @@ func ProcessWikidataDump(
 	ctx context.Context, config *ProcessDumpConfig,
 	processEntity func(context.Context, Entity) errors.E,
 ) errors.E {
-	return Process(ctx, &ProcessConfig{
+	return Process(ctx, &ProcessConfig[Entity]{
 		URL:                    config.URL,
 		Path:                   config.Path,
 		Client:                 config.Client,
 		DecompressionThreads:   config.DecompressionThreads,
 		DecodingThreads:        config.DecodingThreads,
 		ItemsProcessingThreads: config.ItemsProcessingThreads,
-		Process: func(ctx context.Context, i interface{}) errors.E {
-			return processEntity(ctx, *(i.(*Entity)))
-		},
-		Progress:    config.Progress,
-		Item:        &Entity{},
-		FileType:    JSONArray,
-		Compression: BZIP2,
+		Process:                processEntity,
+		Progress:               config.Progress,
+		FileType:               JSONArray,
+		Compression:            BZIP2,
 	})
 }

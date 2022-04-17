@@ -36,19 +36,16 @@ func ProcessWikipediaDump(
 	ctx context.Context, config *ProcessDumpConfig,
 	processArticle func(context.Context, Article) errors.E,
 ) errors.E {
-	return Process(ctx, &ProcessConfig{
+	return Process(ctx, &ProcessConfig[Article]{
 		URL:                    config.URL,
 		Path:                   config.Path,
 		Client:                 config.Client,
 		DecompressionThreads:   config.DecompressionThreads,
 		DecodingThreads:        config.DecodingThreads,
 		ItemsProcessingThreads: config.ItemsProcessingThreads,
-		Process: func(ctx context.Context, i interface{}) errors.E {
-			return processArticle(ctx, *(i.(*Article)))
-		},
-		Progress:    config.Progress,
-		Item:        &Article{},
-		FileType:    NDJSON,
-		Compression: GZIPTar,
+		Process:                processArticle,
+		Progress:               config.Progress,
+		FileType:               NDJSON,
+		Compression:            GZIPTar,
 	})
 }

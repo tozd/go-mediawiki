@@ -26,18 +26,17 @@ func ProcessCommonsEntitiesDump(
 	ctx context.Context, config *ProcessDumpConfig,
 	processEntity func(context.Context, Entity) errors.E,
 ) errors.E {
-	return Process(ctx, &ProcessConfig{
+	return Process(ctx, &ProcessConfig[commonsEntity]{
 		URL:                    config.URL,
 		Path:                   config.Path,
 		Client:                 config.Client,
 		DecompressionThreads:   config.DecompressionThreads,
 		DecodingThreads:        config.DecodingThreads,
 		ItemsProcessingThreads: config.ItemsProcessingThreads,
-		Process: func(ctx context.Context, i interface{}) errors.E {
-			return processEntity(ctx, Entity(*(i.(*commonsEntity))))
+		Process: func(ctx context.Context, i commonsEntity) errors.E {
+			return processEntity(ctx, Entity(i))
 		},
 		Progress:    config.Progress,
-		Item:        &commonsEntity{},
 		FileType:    JSONArray,
 		Compression: BZIP2,
 	})
