@@ -23,14 +23,15 @@ func ProcessWikidataDump(
 	processEntity func(context.Context, Entity) errors.E,
 ) errors.E {
 	return Process(ctx, &ProcessConfig[Entity]{
-		URL:                  config.URL,
-		Path:                 config.Path,
-		Client:               config.Client,
-		DecompressionThreads: config.DecompressionThreads,
-		ProcessingThreads:    config.ProcessingThreads,
-		Process:              processEntity,
-		Progress:             config.Progress,
-		FileType:             JSONArray,
-		Compression:          BZIP2,
+		URL:                    config.URL,
+		Path:                   config.Path,
+		Client:                 config.Client,
+		DecompressionThreads:   config.DecompressionThreads,
+		DecodingThreads:        config.DecodingThreads,
+		ItemsProcessingThreads: config.ItemsProcessingThreads,
+		Process:                processEntity,
+		Progress:               config.Progress,
+		FileType:               JSONArray,
+		Compression:            BZIP2,
 	})
 }
