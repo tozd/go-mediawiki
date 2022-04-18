@@ -19,11 +19,10 @@ import (
 //     	req.Header.Set("User-Agent", "My bot (user@example.com)")
 //     }
 type ProcessDumpConfig struct {
-	URL                    string
-	Path                   string
-	Client                 *retryablehttp.Client
-	DecompressionThreads   int
-	DecodingThreads        int
-	ItemsProcessingThreads int
-	Progress               func(context.Context, x.Progress)
+	URL                  string
+	Path                 string
+	Client               *retryablehttp.Client
+	DecompressionThreads int
+	ProcessingThreads    int
+	Progress             func(context.Context, x.Progress)
 }

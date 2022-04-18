@@ -167,16 +167,15 @@ const (
 //     	req.Header.Set("User-Agent", "My bot (user@example.com)")
 //     }
 type ProcessConfig[T any] struct {
-	URL                    string
-	Path                   string
-	Client                 *retryablehttp.Client
-	DecompressionThreads   int
-	DecodingThreads        int
-	ItemsProcessingThreads int
-	Process                func(context.Context, T) errors.E
-	Progress               func(context.Context, x.Progress)
-	FileType               FileType
-	Compression            Compression
+	URL                  string
+	Path                 string
+	Client               *retryablehttp.Client
+	DecompressionThreads int
+	ProcessingThreads    int
+	Process              func(context.Context, T) errors.E
+	Progress             func(context.Context, x.Progress)
+	FileType             FileType
+	Compression          Compression
 }
 
 func getFileRows[T any](
@@ -405,24 +404,22 @@ func makeValid(s string) string {
 	return b.String()
 }
 
-func decodeJSON[T any](ctx context.Context, r []byte, output chan<- T, errs chan<- errors.E) {
+func decodeJSON[T any](ctx context.Context, r []byte) (T, errors.E) {
 	var e T
 	errE := x.UnmarshalWithoutUnknownFields(r, &e)
 	if errE != nil {
-		errs <- errors.Wrapf(errE, "cannot decode json: %s", r)
-		return
+		return e, errors.Wrapf(errE, "cannot decode json: %s", r)
 	}
-	select {
-	case <-ctx.Done():
-		errs <- errors.WithStack(ctx.Err())
-		return
-	case output <- e:
+	err := ctx.Err()
+	if err != nil {
+		return e, errors.WithStack(err)
 	}
+	return e, nil
 }
 
-func decodeRows[T any](
-	ctx context.Context, config *ProcessConfig[T], wg *sync.WaitGroup, decodeRowsState *syncVar,
-	input <-chan []byte, output chan<- T, errs chan<- errors.E,
+func processRows[T any](
+	ctx context.Context, config *ProcessConfig[T], wg *sync.WaitGroup, processRowsState *syncVar,
+	input <-chan []byte, errs chan<- errors.E,
 ) {
 	defer wg.Done()
 
@@ -455,17 +452,17 @@ func decodeRows[T any](
 					for _, col := range s.Cols {
 						cols = append(cols, norm.NFC.String(col.Name.Name.O))
 					}
-					// Share columns with other goroutines.
-					err := decodeRowsState.Store(cols)
-					if err != nil {
-						errs <- err
+					// EShare columns with other goroutines.
+					errE := processRowsState.Store(cols)
+					if errE != nil {
+						errs <- errE
 						return
 					}
 					columns = cols
 				case *ast.InsertStmt:
 					if columns == nil {
 						// Wait for another goroutine to process CreateTableStmt.
-						columns = decodeRowsState.Load().([]string) //nolint:errcheck
+						columns = processRowsState.Load().([]string) //nolint:errcheck
 					}
 					for _, r := range s.Lists {
 						v := make(map[string]interface{})
@@ -488,43 +485,41 @@ func decodeRows[T any](
 							v[columns[i]] = z
 						}
 						// We marshal to JSON to decode to a struct if provided.
-						d, err := x.MarshalWithoutEscapeHTML(v)
-						if err != nil {
-							errs <- errors.WithStack(err)
+						d, errE := x.MarshalWithoutEscapeHTML(v)
+						if errE != nil {
+							errs <- errE
 							return
 						}
-						decodeJSON(ctx, d, output, errs)
+						output, errE := decodeJSON[T](ctx, d)
+						if errE != nil {
+							errs <- errE
+							return
+						}
+						errE = config.Process(ctx, output)
+						if errE != nil {
+							errs <- errE
+							return
+						}
+						err := ctx.Err()
+						if err != nil {
+							errs <- errors.WithStack(err)
+						}
 					}
 				default:
 					errs <- errors.Errorf("unexpected statement %T: %s", stmt, row)
 					return
 				}
 			} else {
-				decodeJSON(ctx, row, output, errs)
-			}
-		case <-ctx.Done():
-			errs <- errors.WithStack(ctx.Err())
-			return
-		}
-	}
-}
-
-func processItems[T any](
-	ctx context.Context, config *ProcessConfig[T], wg *sync.WaitGroup,
-	input <-chan T, errs chan<- errors.E,
-) {
-	defer wg.Done()
-
-	for {
-		select {
-		case i, ok := <-input:
-			if !ok {
-				return
-			}
-			err := config.Process(ctx, i)
-			if err != nil {
-				errs <- err
-				return
+				output, errE := decodeJSON[T](ctx, row)
+				if errE != nil {
+					errs <- errE
+					return
+				}
+				errE = config.Process(ctx, output)
+				if errE != nil {
+					errs <- errE
+					return
+				}
 			}
 		case <-ctx.Done():
 			errs <- errors.WithStack(ctx.Err())
@@ -536,18 +531,15 @@ func processItems[T any](
 // Process is a low-level function which decompresses a file (supports Compression compressions),
 // extacts JSONs or SQL statements from it (stored in FileType types), decodes JSONs or SQL statements, and
 // calls Process callback on each decoded JSON or SQL statement. All that in parallel fashion, controlled by
-// DecompressionThreads, DecodingThreads, and ItemsProcessingThreads. File is downloaded from a HTTP URL and is
+// DecompressionThreads and ProcessingThreads. File is downloaded from a HTTP URL and is
 // processed already during download. Downloaded file is optionally saved (to a file at Path) and followup
 // calls to Process can use a saved file (if same Path is provided).
 func Process[T any](ctx context.Context, config *ProcessConfig[T]) errors.E {
 	if config.DecompressionThreads == 0 {
 		config.DecompressionThreads = runtime.GOMAXPROCS(0)
 	}
-	if config.DecodingThreads == 0 {
-		config.DecodingThreads = runtime.GOMAXPROCS(0)
-	}
-	if config.ItemsProcessingThreads == 0 {
-		config.ItemsProcessingThreads = runtime.GOMAXPROCS(0)
+	if config.ProcessingThreads == 0 {
+		config.ProcessingThreads = runtime.GOMAXPROCS(0)
 	}
 
 	// We call cancel on any error from goroutines. The expectation is that all
@@ -561,11 +553,10 @@ func Process[T any](ctx context.Context, config *ProcessConfig[T]) errors.E {
 	// mainWgChan is closed when mainWg is done.
 	mainWgChan := make(chan struct{})
 
-	errs := make(chan errors.E, 1+config.DecodingThreads+config.ItemsProcessingThreads)
+	errs := make(chan errors.E, 1+config.ProcessingThreads)
 	defer close(errs)
 
-	rows := make(chan []byte, config.DecodingThreads)
-	items := make(chan T, config.ItemsProcessingThreads)
+	rows := make(chan []byte, config.ProcessingThreads)
 
 	var getFileRowsWg sync.WaitGroup
 	mainWg.Add(1)
@@ -579,29 +570,15 @@ func Process[T any](ctx context.Context, config *ProcessConfig[T]) errors.E {
 		close(rows)
 	}()
 
-	var decodeRowsWg sync.WaitGroup
-	decodeRowsState := newWriteOnce()
+	var processRowsWg sync.WaitGroup
+	processRowsState := newWriteOnce()
 	mainWg.Add(1)
-	for w := 0; w < config.DecodingThreads; w++ {
-		decodeRowsWg.Add(1)
-		go decodeRows(ctx, config, &decodeRowsWg, decodeRowsState, rows, items, errs)
+	for w := 0; w < config.ProcessingThreads; w++ {
+		processRowsWg.Add(1)
+		go processRows(ctx, config, &processRowsWg, processRowsState, rows, errs)
 	}
 	go func() {
-		decodeRowsWg.Wait()
-		mainWg.Done()
-		// All goroutines using items channel as output are done,
-		// we can close the channel.
-		close(items)
-	}()
-
-	var processItemWg sync.WaitGroup
-	mainWg.Add(1)
-	for w := 0; w < config.ItemsProcessingThreads; w++ {
-		processItemWg.Add(1)
-		go processItems(ctx, config, &processItemWg, items, errs)
-	}
-	go func() {
-		processItemWg.Wait()
+		processRowsWg.Wait()
 		mainWg.Done()
 	}()
 

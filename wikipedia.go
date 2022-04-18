@@ -37,15 +37,14 @@ func ProcessWikipediaDump(
 	processArticle func(context.Context, Article) errors.E,
 ) errors.E {
 	return Process(ctx, &ProcessConfig[Article]{
-		URL:                    config.URL,
-		Path:                   config.Path,
-		Client:                 config.Client,
-		DecompressionThreads:   config.DecompressionThreads,
-		DecodingThreads:        config.DecodingThreads,
-		ItemsProcessingThreads: config.ItemsProcessingThreads,
-		Process:                processArticle,
-		Progress:               config.Progress,
-		FileType:               NDJSON,
-		Compression:            GZIPTar,
+		URL:                  config.URL,
+		Path:                 config.Path,
+		Client:               config.Client,
+		DecompressionThreads: config.DecompressionThreads,
+		ProcessingThreads:    config.ProcessingThreads,
+		Process:              processArticle,
+		Progress:             config.Progress,
+		FileType:             NDJSON,
+		Compression:          GZIPTar,
 	})
 }

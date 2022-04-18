@@ -13,7 +13,7 @@ Features:
 - Supports [Wikimedia Enterprise HTML dumps](https://dumps.wikimedia.org/other/enterprise_html/).
 - Supports [Wikimedia Commons entities dumps](https://dumps.wikimedia.org/commonswiki/entities/).
 - Supports [SQL dumps](https://dumps.wikimedia.org/backup-index.html) ([database layout](https://www.mediawiki.org/wiki/Manual:Database_layout)).
-- Decompression and JSON decoding is parallelized for maximum throughput on a single machine.
+- Decompression and processing is parallelized for maximum throughput on a single machine.
 - Parses into idiomatic Go structs, with no loss of information.
 - Can download and process a dump at the same time.
 - Can cache downloaded files locally.
