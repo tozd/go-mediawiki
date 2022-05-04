@@ -12,8 +12,9 @@ import (
 )
 
 // LatestWikipediaRun returns URL of the latest run of Wikimedia Commons entities JSON dump.
-func LatestCommonsEntitiesRun(client *retryablehttp.Client) (string, errors.E) {
+func LatestCommonsEntitiesRun(ctx context.Context, client *retryablehttp.Client) (string, errors.E) {
 	return latestRun(
+		ctx,
 		client,
 		"https://dumps.wikimedia.org/commonswiki/entities/",
 		"https://dumps.wikimedia.org/commonswiki/entities/%s/commons-%s-mediainfo.json.bz2",
@@ -65,8 +66,9 @@ func convertToStringMapsMap(m map[interface{}]interface{}) map[string]interface{
 }
 
 // LatestCommonsImageMetadataRun returns URL of the latest run of Wikimedia Commons image table dump.
-func LatestCommonsImageMetadataRun(client *retryablehttp.Client) (string, errors.E) {
+func LatestCommonsImageMetadataRun(ctx context.Context, client *retryablehttp.Client) (string, errors.E) {
 	return latestRun(
+		ctx,
 		client,
 		"https://dumps.wikimedia.org/commonswiki/",
 		"https://dumps.wikimedia.org/commonswiki/%s/commonswiki-%s-image.sql.gz",

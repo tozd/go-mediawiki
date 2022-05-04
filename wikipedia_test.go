@@ -30,7 +30,7 @@ func TestProcessWikipediaDumpLatest(t *testing.T) {
 		req.Header.Set("User-Agent", testUserAgent)
 	}
 
-	url, errE := mediawiki.LatestWikipediaRun(client, "enwiki", 0)
+	url, errE := mediawiki.LatestWikipediaRun(context.Background(), client, "enwiki", 0)
 	require.NoError(t, errE)
 
 	cacheDir := t.TempDir()

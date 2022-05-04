@@ -30,7 +30,7 @@ func TestProcessCommonsDumpLatest(t *testing.T) {
 		req.Header.Set("User-Agent", testUserAgent)
 	}
 
-	url, errE := mediawiki.LatestCommonsEntitiesRun(client)
+	url, errE := mediawiki.LatestCommonsEntitiesRun(context.Background(), client)
 	require.NoError(t, errE)
 
 	cacheDir := t.TempDir()

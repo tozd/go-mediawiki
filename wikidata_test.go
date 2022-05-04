@@ -30,7 +30,7 @@ func TestProcessWikidataDumpLatest(t *testing.T) {
 		req.Header.Set("User-Agent", testUserAgent)
 	}
 
-	url, errE := mediawiki.LatestWikidataEntitiesRun(client)
+	url, errE := mediawiki.LatestWikidataEntitiesRun(context.Background(), client)
 	require.NoError(t, errE)
 
 	cacheDir := t.TempDir()

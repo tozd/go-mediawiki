@@ -1,6 +1,7 @@
 package mediawiki
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -19,8 +20,12 @@ type runs struct {
 	Links []string `pagser:"a->eachAttr(href)"`
 }
 
-func latestRun(client *retryablehttp.Client, runURL, fileFormat string) (string, errors.E) {
-	resp, err := client.Get(runURL)
+func latestRun(ctx context.Context, client *retryablehttp.Client, runURL, fileFormat string) (string, errors.E) {
+	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, runURL, nil)
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", errors.WithStack(err)
 	}

@@ -10,9 +10,10 @@ import (
 
 // LatestWikipediaRun returns URL of the latest run of Wikimedia Enterprise HTML dump.
 // Use "enwiki" for English Wikipedia and namespace 0 for its articles.
-func LatestWikipediaRun(client *retryablehttp.Client, language string, namespace int) (string, errors.E) {
+func LatestWikipediaRun(ctx context.Context, client *retryablehttp.Client, language string, namespace int) (string, errors.E) {
 	format := fmt.Sprintf("https://dumps.wikimedia.org/other/enterprise_html/runs/%%s/%s-NS%d-%%s-ENTERPRISE-HTML.json.tar.gz", language, namespace)
 	return latestRun(
+		ctx,
 		client,
 		"https://dumps.wikimedia.org/other/enterprise_html/runs/",
 		format,
@@ -21,9 +22,10 @@ func LatestWikipediaRun(client *retryablehttp.Client, language string, namespace
 
 // LatestWikipediaImageMetadataRun returns URL of the latest run of Wikipedia image table dump.
 // Use "enwiki" for English Wikipedia.
-func LatestWikipediaImageMetadataRun(client *retryablehttp.Client, language string) (string, errors.E) {
+func LatestWikipediaImageMetadataRun(ctx context.Context, client *retryablehttp.Client, language string) (string, errors.E) {
 	format := fmt.Sprintf("https://dumps.wikimedia.org/enwiki/%%s/%s-%%s-image.sql.gz", language)
 	return latestRun(
+		ctx,
 		client,
 		fmt.Sprintf("https://dumps.wikimedia.org/%s/", language),
 		format,

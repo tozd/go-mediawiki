@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Utility functions to determine the latest dump's URL accept `context.Context` parameter.
+
 ## [0.9.0] - 2022-04-17
 
 ### Changed

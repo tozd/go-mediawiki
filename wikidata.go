@@ -8,8 +8,9 @@ import (
 )
 
 // LatestWikidataEntitiesRun returns URL of the latest run of Wikidata entities JSON dump.
-func LatestWikidataEntitiesRun(client *retryablehttp.Client) (string, errors.E) {
+func LatestWikidataEntitiesRun(ctx context.Context, client *retryablehttp.Client) (string, errors.E) {
 	return latestRun(
+		ctx,
 		client,
 		"https://dumps.wikimedia.org/wikidatawiki/entities/",
 		"https://dumps.wikimedia.org/wikidatawiki/entities/%s/wikidata-%s-all.json.bz2",
