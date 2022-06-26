@@ -124,7 +124,7 @@ func TestProcessWikidataDumpExplicit(t *testing.T) {
 
 	info, err := os.Stat(dumpPath)
 	require.NoError(t, err)
-	assert.Equal(t, int64(209393), info.Size())
+	assert.Equal(t, int64(221674), info.Size())
 
 	entityCounter = int64(0)
 

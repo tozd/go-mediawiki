@@ -816,6 +816,10 @@ type Statement struct {
 // Entity is a Wikidata entities JSON dump entity.
 type Entity struct {
 	ID           string                     `json:"id"`
+	PageID       int64                      `json:"pageid"`
+	Namespace    int                        `json:"ns"`
+	Title        string                     `json:"title"`
+	Modified     time.Time                  `json:"modified"`
 	Type         EntityType                 `json:"type"`
 	DataType     *DataType                  `json:"datatype,omitempty"`
 	Labels       map[string]LanguageValue   `json:"labels,omitempty"`
@@ -831,6 +835,10 @@ type Entity struct {
 // the JSON. We use it to parse JSON and then we cast it to Entity.
 type commonsEntity struct {
 	ID           string                     `json:"id"`
+	PageID       int64                      `json:"pageid"`
+	Namespace    int                        `json:"ns"`
+	Title        string                     `json:"title"`
+	Modified     time.Time                  `json:"modified"`
 	Type         EntityType                 `json:"type"`
 	DataType     *DataType                  `json:"datatype,omitempty"`
 	Labels       map[string]LanguageValue   `json:"labels,omitempty"`
