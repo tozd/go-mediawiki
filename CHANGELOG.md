@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Wikidata and Wikimedia Commons entities now include `PageID`, `Namespace`, `Title`,
+  and `Modified` fields.
+
 ## [0.10.0] - 2022-05-04
 
 ### Changed
