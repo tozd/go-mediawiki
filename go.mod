@@ -10,7 +10,7 @@ require (
 	github.com/klauspost/pgzip v1.2.5
 	github.com/pingcap/parser v0.0.0-20210802034743-dd9b189324ce
 	gitlab.com/tozd/go/errors v0.3.0
-	golang.org/x/text v0.3.6
+	golang.org/x/text v0.3.7
 )
 
 require (
