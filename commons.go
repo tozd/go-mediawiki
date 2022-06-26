@@ -11,7 +11,7 @@ import (
 	"gitlab.com/tozd/go/errors"
 )
 
-// LatestWikipediaRun returns URL of the latest run of Wikimedia Commons entities JSON dump.
+// LatestCommonsEntitiesRun returns URL of the latest run of Wikimedia Commons entities JSON dump.
 func LatestCommonsEntitiesRun(ctx context.Context, client *retryablehttp.Client) (string, errors.E) {
 	return latestRun(
 		ctx,
