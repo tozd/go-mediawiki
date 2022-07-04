@@ -793,7 +793,7 @@ type Snak struct {
 	Hash      string     `json:"hash,omitempty"`
 	SnakType  SnakType   `json:"snaktype"`
 	Property  string     `json:"property"`
-	DataType  DataType   `json:"datatype"`
+	DataType  *DataType  `json:"datatype,omitempty"`
 	DataValue *DataValue `json:"datavalue,omitempty"`
 }
 
