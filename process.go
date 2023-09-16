@@ -162,10 +162,10 @@ const (
 //
 // Client should set User-Agent header with contact information, e.g.:
 //
-//     client := retryablehttp.NewClient()
-//     client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
-//     	req.Header.Set("User-Agent", "My bot (user@example.com)")
-//     }
+//	client := retryablehttp.NewClient()
+//	client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
+//		req.Header.Set("User-Agent", "My bot (user@example.com)")
+//	}
 type ProcessConfig[T any] struct {
 	URL                    string
 	Path                   string
