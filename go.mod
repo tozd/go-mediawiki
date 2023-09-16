@@ -10,7 +10,7 @@ require (
 	github.com/klauspost/pgzip v1.2.5
 	github.com/pingcap/parser v0.0.0-20210802034743-dd9b189324ce
 	gitlab.com/tozd/go/errors v0.3.0
-	golang.org/x/text v0.3.7
+	golang.org/x/text v0.13.0
 )
 
 require (
@@ -44,9 +44,8 @@ require (
 	go.uber.org/zap v1.18.1 // indirect
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
-	golang.org/x/sys v0.0.0-20210510120138-977fb7262007 // indirect
-	golang.org/x/tools v0.1.4 // indirect
+	golang.org/x/net v0.6.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
