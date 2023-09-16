@@ -25,6 +25,8 @@ const (
 )
 
 func TestProcessWikidataDumpLatest(t *testing.T) {
+	t.Parallel()
+
 	client := retryablehttp.NewClient()
 	client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
 		req.Header.Set("User-Agent", testUserAgent)
@@ -78,6 +80,8 @@ func TestProcessWikidataDumpLatest(t *testing.T) {
 }
 
 func TestProcessWikidataDumpExplicit(t *testing.T) {
+	t.Parallel()
+
 	client := retryablehttp.NewClient()
 	client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
 		req.Header.Set("User-Agent", testUserAgent)

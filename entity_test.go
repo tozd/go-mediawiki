@@ -10,6 +10,8 @@ import (
 )
 
 func TestTime(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		time      string
 		precision TimePrecision
@@ -25,7 +27,11 @@ func TestTime(t *testing.T) {
 		{"-13798000000-00-00T00:00:00Z", Year},
 	}
 	for _, test := range tests {
+		test := test
+
 		t.Run(test.time, func(t *testing.T) {
+			t.Parallel()
+
 			p, err := parseTime(test.time)
 			require.NoError(t, err)
 			s := formatTime(p, test.precision)
@@ -35,6 +41,8 @@ func TestTime(t *testing.T) {
 }
 
 func TestAmount(t *testing.T) {
+	t.Parallel()
+
 	tests := []string{
 		"+123.34",
 		"-123.34",
@@ -43,7 +51,11 @@ func TestAmount(t *testing.T) {
 		"+0",
 	}
 	for _, test := range tests {
+		test := test
+
 		t.Run(test, func(t *testing.T) {
+			t.Parallel()
+
 			in := `"` + test + `"`
 			var a Amount
 			err := json.Unmarshal([]byte(in), &a)

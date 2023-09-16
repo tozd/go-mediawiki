@@ -33,6 +33,10 @@ linters-settings:
     go: "1.21"
     checks:
       - all
+  tagliatelle:
+    case:
+      rules:
+        json: snake
   unused:
     go: "1.21"
 
@@ -142,6 +146,8 @@ issues:
     - path: .*_test\.go
       linters:
         - dupl
+        - exhaustruct
+        - gochecknoglobals
     - path: entity_test\.go
       linters:
         - testpackage

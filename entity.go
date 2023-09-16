@@ -408,7 +408,7 @@ type ErrorValue string
 type StringValue string
 
 type WikiBaseEntityIDValue struct {
-	Type WikiBaseEntityType `json:"entity-type"`
+	Type WikiBaseEntityType `json:"entity-type"` //nolint:tagliatelle
 	ID   string             `json:"id"`
 }
 
@@ -463,8 +463,8 @@ func (a *Amount) String() string {
 
 type QuantityValue struct {
 	Amount     Amount  `json:"amount"`
-	UpperBound *Amount `json:"upperBound,omitempty"`
-	LowerBound *Amount `json:"lowerBound,omitempty"`
+	UpperBound *Amount `json:"upperBound,omitempty"` //nolint:tagliatelle
+	LowerBound *Amount `json:"lowerBound,omitempty"` //nolint:tagliatelle
 	Unit       string  `json:"unit"`
 }
 
@@ -636,15 +636,15 @@ func parseTime(t string) (time.Time, errors.E) {
 		// Go does not support this, so we set it to 1 here.
 		day = 1
 	}
-	hour, err := strconv.ParseInt(match[4], 10, 0) //nolint:gomnd
+	hour, err := strconv.ParseInt(match[4], 10, 0)
 	if err != nil {
 		return time.Time{}, errors.WithMessagef(err, `unable to parse hour "%s"`, t)
 	}
-	minute, err := strconv.ParseInt(match[5], 10, 0) //nolint:gomnd
+	minute, err := strconv.ParseInt(match[5], 10, 0)
 	if err != nil {
 		return time.Time{}, errors.WithMessagef(err, `unable to parse minute "%s"`, t)
 	}
-	second, err := strconv.ParseInt(match[6], 10, 0) //nolint:gomnd
+	second, err := strconv.ParseInt(match[6], 10, 0)
 	if err != nil {
 		return time.Time{}, errors.WithMessagef(err, `unable to parse second "%s"`, t)
 	}
@@ -683,10 +683,10 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 			Type string `json:"type"`
 			// We do not use WikiBaseEntityIDValue because of extra fields.
 			Value struct {
-				Type WikiBaseEntityType `json:"entity-type"`
+				Type WikiBaseEntityType `json:"entity-type"` //nolint:tagliatelle
 				ID   string             `json:"id"`
 				// Not available for all entity types. Not recommended to be used. We ignore it.
-				NumericID int `json:"numeric-id"`
+				NumericID int `json:"numeric-id"` //nolint:tagliatelle
 			} `json:"value"`
 		}
 		err := x.UnmarshalWithoutUnknownFields(b, &t)
@@ -800,7 +800,7 @@ type Snak struct {
 type Reference struct {
 	Hash       string            `json:"hash,omitempty"`
 	Snaks      map[string][]Snak `json:"snaks,omitempty"`
-	SnaksOrder []string          `json:"snaks-order,omitempty"`
+	SnaksOrder []string          `json:"snaks-order,omitempty"` //nolint:tagliatelle
 }
 
 type Statement struct {
@@ -809,7 +809,7 @@ type Statement struct {
 	MainSnak        Snak              `json:"mainsnak"`
 	Rank            StatementRank     `json:"rank"`
 	Qualifiers      map[string][]Snak `json:"qualifiers,omitempty"`
-	QualifiersOrder []string          `json:"qualifiers-order,omitempty"`
+	QualifiersOrder []string          `json:"qualifiers-order,omitempty"` //nolint:tagliatelle
 	References      []Reference       `json:"references,omitempty"`
 }
 

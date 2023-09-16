@@ -62,6 +62,7 @@ func newWriteOnce() *syncVar {
 	return &syncVar{
 		lock: l,
 		cond: sync.NewCond(l.RLocker()),
+		v:    nil,
 	}
 }
 
@@ -179,7 +180,7 @@ type ProcessConfig[T any] struct {
 	Compression            Compression
 }
 
-func getFileRows[T any](
+func getFileRows[T any]( //nolint:maintidx
 	ctx context.Context, config *ProcessConfig[T], wg *sync.WaitGroup,
 	output chan<- []byte, errs chan<- errors.E,
 ) {
@@ -465,7 +466,7 @@ func decodeRows[T any](
 				case *ast.InsertStmt:
 					if columns == nil {
 						// Wait for another goroutine to process CreateTableStmt.
-						columns = decodeRowsState.Load().([]string) //nolint:errcheck
+						columns = decodeRowsState.Load().([]string) //nolint:errcheck,forcetypeassert
 					}
 					for _, r := range s.Lists {
 						v := make(map[string]interface{})

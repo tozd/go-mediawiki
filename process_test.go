@@ -36,13 +36,19 @@ var compressionTests = []struct {
 }
 
 func TestCompressionRemote(t *testing.T) {
+	t.Parallel()
+
 	client := retryablehttp.NewClient()
 	client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
 		req.Header.Set("User-Agent", testUserAgent)
 	}
 
 	for _, test := range compressionTests {
+		test := test
+
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			itemCounter := int64(0)
 
 			err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig[interface{}]{
@@ -62,8 +68,14 @@ func TestCompressionRemote(t *testing.T) {
 }
 
 func TestCompressionLocal(t *testing.T) {
+	t.Parallel()
+
 	for _, test := range compressionTests {
+		test := test
+
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			itemCounter := int64(0)
 
 			err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig[interface{}]{
@@ -82,6 +94,8 @@ func TestCompressionLocal(t *testing.T) {
 }
 
 func TestSQLDump(t *testing.T) {
+	t.Parallel()
+
 	client := retryablehttp.NewClient()
 	client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
 		req.Header.Set("User-Agent", testUserAgent)
