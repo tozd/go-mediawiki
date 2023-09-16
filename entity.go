@@ -607,7 +607,7 @@ func parseTime(t string) (time.Time, errors.E) {
 	if match == nil {
 		return time.Time{}, errors.Errorf(`unable to parse time "%s"`, t)
 	}
-	year, err := strconv.ParseInt(match[1], 10, 0) //nolint:gomnd
+	year, err := strconv.ParseInt(match[1], 10, 0)
 	if err != nil {
 		return time.Time{}, errors.WithMessagef(err, `unable to parse year "%s"`, t)
 	}
@@ -618,7 +618,7 @@ func parseTime(t string) (time.Time, errors.E) {
 	} else if year == 0 {
 		return time.Time{}, errors.New("year cannot be 0")
 	}
-	month, err := strconv.ParseInt(match[2], 10, 0) //nolint:gomnd
+	month, err := strconv.ParseInt(match[2], 10, 0)
 	if err != nil {
 		return time.Time{}, errors.WithMessagef(err, `unable to parse month "%s"`, t)
 	}
@@ -627,7 +627,7 @@ func parseTime(t string) (time.Time, errors.E) {
 		// Go does not support this, so we set it to 1 here.
 		month = 1
 	}
-	day, err := strconv.ParseInt(match[3], 10, 0) //nolint:gomnd
+	day, err := strconv.ParseInt(match[3], 10, 0)
 	if err != nil {
 		return time.Time{}, errors.WithMessagef(err, `unable to parse day "%s"`, t)
 	}
