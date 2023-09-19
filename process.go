@@ -91,7 +91,7 @@ func newJSONIterator(r io.Reader) iterator { //nolint:ireturn
 
 type statementIterator struct {
 	reader *bufio.Reader
-	buffer bytes.Buffer
+	buffer *bytes.Buffer
 }
 
 func (i *statementIterator) More() bool {
@@ -107,7 +107,7 @@ func (i *statementIterator) Next(b *[]byte) errors.E {
 	if err != nil {
 		if errors.Is(err, io.EOF) && i.buffer.Len() > 0 {
 			*b = i.buffer.Bytes()
-			i.buffer = bytes.Buffer{}
+			i.buffer = new(bytes.Buffer)
 			return nil
 		}
 		return errors.WithStack(err)
@@ -120,14 +120,14 @@ func (i *statementIterator) Next(b *[]byte) errors.E {
 		return i.Next(b)
 	}
 	*b = i.buffer.Bytes()
-	i.buffer = bytes.Buffer{}
+	i.buffer = new(bytes.Buffer)
 	return nil
 }
 
 func newStatementIterator(r io.Reader) *statementIterator {
 	return &statementIterator{
 		reader: bufio.NewReader(r),
-		buffer: bytes.Buffer{},
+		buffer: new(bytes.Buffer),
 	}
 }
 

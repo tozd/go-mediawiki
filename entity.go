@@ -431,7 +431,7 @@ type Amount struct {
 
 // MarshalJSON implements json.Marshaler interface for Amount.
 func (a Amount) MarshalJSON() ([]byte, error) {
-	b := bytes.Buffer{}
+	b := new(bytes.Buffer)
 	b.WriteString(`"`)
 	if a.Sign() >= 0 {
 		// Sign is required always.
