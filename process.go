@@ -653,12 +653,17 @@ WAIT:
 	}
 
 	if len(allErrors) > 0 {
-		// If there is any non-context-canceled error, return it.
-		// TODO: What if there are multiple such errors?
+		// If there is any non-context-canceled error, return them.
+		nonCanceledErrors := []error{}
 		for _, err := range allErrors {
 			if !errors.Is(err, context.Canceled) {
-				return err
+				nonCanceledErrors = append(nonCanceledErrors, err)
 			}
+		}
+
+		if len(nonCanceledErrors) > 0 {
+			// If there is only one error, errors.Join will return it as-is.
+			return errors.Join(nonCanceledErrors...)
 		}
 
 		// Otherwise return any error, i.e., the first.
