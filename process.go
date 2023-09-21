@@ -32,35 +32,35 @@ const (
 	progressPrintRate = 30 * time.Second
 )
 
-type syncVar struct {
+type syncVar[T any] struct {
 	lock *sync.RWMutex
 	cond *sync.Cond
-	v    interface{}
+	v    *T
 }
 
-func (w *syncVar) Load() interface{} {
+func (w *syncVar[T]) Load() T {
 	w.cond.L.Lock()
 	defer w.cond.L.Unlock()
 	for w.v == nil {
 		w.cond.Wait()
 	}
-	return w.v
+	return *w.v
 }
 
-func (w *syncVar) Store(v interface{}) errors.E {
+func (w *syncVar[T]) Store(v T) errors.E {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 	if w.v != nil {
 		return errors.WithStack(ErrSyncVarAlreadyStored)
 	}
-	w.v = v
+	w.v = &v
 	w.cond.Broadcast()
 	return nil
 }
 
-func newWriteOnce() *syncVar {
+func newWriteOnce[T any]() *syncVar[T] {
 	l := &sync.RWMutex{}
-	return &syncVar{
+	return &syncVar[T]{
 		lock: l,
 		cond: sync.NewCond(l.RLocker()),
 		v:    nil,
@@ -434,7 +434,7 @@ func decodeJSON[T any](ctx context.Context, r []byte, output chan<- T, errs chan
 }
 
 func decodeRows[T any](
-	ctx context.Context, config *ProcessConfig[T], wg *sync.WaitGroup, decodeRowsState *syncVar,
+	ctx context.Context, config *ProcessConfig[T], wg *sync.WaitGroup, decodeRowsState *syncVar[[]string],
 	input <-chan []byte, output chan<- T, errs chan<- errors.E,
 ) {
 	defer wg.Done()
@@ -480,7 +480,7 @@ func decodeRows[T any](
 				case *ast.InsertStmt:
 					if columns == nil {
 						// Wait for another goroutine to process CreateTableStmt.
-						columns = decodeRowsState.Load().([]string) //nolint:errcheck,forcetypeassert
+						columns = decodeRowsState.Load()
 					}
 					for _, r := range s.Lists {
 						v := make(map[string]interface{})
@@ -602,7 +602,7 @@ func Process[T any](ctx context.Context, config *ProcessConfig[T]) errors.E {
 	}()
 
 	var decodeRowsWg sync.WaitGroup
-	decodeRowsState := newWriteOnce()
+	decodeRowsState := newWriteOnce[[]string]()
 	mainWg.Add(1)
 	for w := 0; w < config.DecodingThreads; w++ {
 		decodeRowsWg.Add(1)
