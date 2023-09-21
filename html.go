@@ -22,11 +22,15 @@ type runs struct {
 func latestRun(ctx context.Context, client *retryablehttp.Client, runURL, fileFormat string) (string, errors.E) {
 	req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, runURL, nil)
 	if err != nil {
-		return "", errors.WithStack(err)
+		errE := errors.WithMessage(err, "new request")
+		errors.Details(errE)["url"] = runURL
+		return "", errE
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", errors.WithStack(err)
+		errE := errors.WithMessage(err, "do")
+		errors.Details(errE)["url"] = runURL
+		return "", errE
 	}
 	defer resp.Body.Close()
 	defer io.Copy(io.Discard, resp.Body) //nolint:errcheck
@@ -36,7 +40,9 @@ func latestRun(ctx context.Context, client *retryablehttp.Client, runURL, fileFo
 	var data runs
 	err = p.ParseReader(&data, resp.Body)
 	if err != nil {
-		return "", errors.WithStack(err)
+		errE := errors.WithMessage(err, "parse")
+		errors.Details(errE)["url"] = runURL
+		return "", errE
 	}
 
 	// We start with the last link.
@@ -50,7 +56,9 @@ func latestRun(ctx context.Context, client *retryablehttp.Client, runURL, fileFo
 			// It can happen that the file is missing in the dump directory. So we check.
 			resp, err := client.Head(url)
 			if err != nil {
-				return "", errors.WithStack(err)
+				errE := errors.WithMessage(err, "head")
+				errors.Details(errE)["url"] = url
+				return "", errE
 			}
 			defer resp.Body.Close()
 			defer io.Copy(io.Discard, resp.Body) //nolint:errcheck
@@ -60,5 +68,5 @@ func latestRun(ctx context.Context, client *retryablehttp.Client, runURL, fileFo
 		}
 	}
 
-	return "", errors.New("not found")
+	return "", errors.WithDetails(ErrNotFound, "url", runURL)
 }

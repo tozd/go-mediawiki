@@ -9,7 +9,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.1-0.20211018174820-ff6d014e72d9
 	github.com/klauspost/pgzip v1.2.5
 	github.com/pingcap/parser v0.0.0-20210802034743-dd9b189324ce
-	gitlab.com/tozd/go/errors v0.3.0
+	gitlab.com/tozd/go/errors v0.7.2
 	golang.org/x/text v0.13.0
 )
 
@@ -55,5 +55,5 @@ require (
 require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/stretchr/testify v1.7.0
-	gitlab.com/tozd/go/x v0.0.0-20220203140942-e215f78d9e8a
+	gitlab.com/tozd/go/x v0.0.0-20230921171621-85eb7deff495
 )

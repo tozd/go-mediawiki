@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -50,7 +51,7 @@ func (w *syncVar) Store(v interface{}) errors.E {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 	if w.v != nil {
-		return errors.New("already stored")
+		return errors.WithStack(ErrSyncVarAlreadyStored)
 	}
 	w.v = v
 	w.cond.Broadcast()
@@ -80,7 +81,7 @@ func (i *jsonIterator) More() bool {
 func (i *jsonIterator) Next(b *[]byte) errors.E {
 	err := (*json.Decoder)(i).Decode((*json.RawMessage)(b))
 	if err != nil {
-		return errors.WithStack(err)
+		return errors.WithMessage(err, "json decode")
 	}
 	return nil
 }
@@ -110,7 +111,7 @@ func (i *statementIterator) Next(b *[]byte) errors.E {
 			i.buffer = new(bytes.Buffer)
 			return nil
 		}
-		return errors.WithStack(err)
+		return errors.WithMessage(err, "read bytes")
 	}
 	if len(bytes.TrimSpace(line)) == 0 || bytes.HasPrefix(line, []byte("--")) {
 		return i.Next(b)
@@ -197,7 +198,9 @@ func getFileRows[T any]( //nolint:maintidx
 		compressedFile, err := os.Open(config.Path)
 		if err != nil {
 			if !errors.Is(err, os.ErrNotExist) {
-				errs <- errors.WithStack(err)
+				errE := errors.WithMessage(err, "open")
+				errors.Details(errE)["path"] = config.Path
+				errs <- errE
 				return
 			}
 			// File does not exists. Continue.
@@ -206,12 +209,16 @@ func getFileRows[T any]( //nolint:maintidx
 			compressedReader = compressedFile
 			compressedSize, err = compressedFile.Seek(0, io.SeekEnd)
 			if err != nil {
-				errs <- errors.WithStack(err)
+				errE := errors.WithMessage(err, "seek end")
+				errors.Details(errE)["path"] = config.Path
+				errs <- errE
 				return
 			}
 			_, err = compressedFile.Seek(0, io.SeekStart)
 			if err != nil {
-				errs <- errors.WithStack(err)
+				errE := errors.WithMessage(err, "seek start")
+				errors.Details(errE)["path"] = config.Path
+				errs <- errE
 				return
 			}
 		}
@@ -221,11 +228,14 @@ func getFileRows[T any]( //nolint:maintidx
 		// File does not already exist. We download the file and optionally save it.
 		req, err := retryablehttp.NewRequestWithContext(ctx, http.MethodGet, config.URL, nil)
 		if err != nil {
-			errs <- errors.WithStack(err)
+			errE := errors.WithMessage(err, "new request")
+			errors.Details(errE)["url"] = config.URL
+			errs <- errE
 			return
 		}
 		downloadReader, errE := x.NewRetryableResponse(config.Client, req)
 		if errE != nil {
+			errors.Details(errE)["url"] = config.URL
 			errs <- errE
 			return
 		}
@@ -234,7 +244,9 @@ func getFileRows[T any]( //nolint:maintidx
 		if config.Path != "" {
 			compressedFile, err := os.Create(config.Path)
 			if err != nil {
-				errs <- errors.WithStack(err)
+				errE := errors.WithMessage(err, "create")
+				errors.Details(errE)["path"] = config.Path
+				errs <- errE
 				return
 			}
 			defer func() {
@@ -274,7 +286,7 @@ func getFileRows[T any]( //nolint:maintidx
 	case GZIP, GZIPTar:
 		gzipReader, err := gzip.NewReader(countingReader)
 		if err != nil {
-			errs <- errors.WithStack(err)
+			errs <- errors.WithMessage(err, "new gzip reader")
 			return
 		}
 		defer gzipReader.Close()
@@ -299,7 +311,7 @@ func getFileRows[T any]( //nolint:maintidx
 					// Make sure the whole file is written out to compressedFile.
 					_, _ = io.Copy(io.Discard, compressedReader)
 				} else {
-					errs <- errors.WithStack(err)
+					errs <- errors.WithMessage(err, "tar reader next")
 				}
 				return
 			}
@@ -317,7 +329,7 @@ func getFileRows[T any]( //nolint:maintidx
 			// Read open bracket.
 			_, err := (*json.Decoder)(iter.(*jsonIterator)).Token()
 			if err != nil {
-				errs <- errors.WithStack(err)
+				errs <- errors.WithMessage(err, "json decoder token")
 				return
 			}
 		}
@@ -346,7 +358,7 @@ func getFileRows[T any]( //nolint:maintidx
 			// Read closing bracket.
 			_, err := (*json.Decoder)(iter.(*jsonIterator)).Token()
 			if err != nil {
-				errs <- errors.WithStack(err)
+				errs <- errors.WithMessage(err, "json decoder token")
 				return
 			}
 		}
@@ -410,7 +422,7 @@ func decodeJSON[T any](ctx context.Context, r []byte, output chan<- T, errs chan
 	var e T
 	errE := x.UnmarshalWithoutUnknownFields(r, &e)
 	if errE != nil {
-		errs <- errors.Wrapf(errE, "cannot decode json: %s", r)
+		errs <- errors.Prefix(errE, ErrJSONDecode)
 		return
 	}
 	select {
@@ -441,7 +453,9 @@ func decodeRows[T any](
 				rowString := *(*string)(unsafe.Pointer(&row))
 				stmt, err := sqlParser.ParseOneStmt(rowString, "", "")
 				if err != nil {
-					errs <- errors.Wrapf(err, "cannot parse sql: %s", row)
+					errE := errors.Prefix(err, ErrSQLParse)
+					errors.Details(errE)["row"] = string(row)
+					errs <- errE
 					return
 				}
 				switch s := stmt.(type) {
@@ -473,7 +487,11 @@ func decodeRows[T any](
 						for i, column := range r {
 							c, ok := column.(*test_driver.ValueExpr)
 							if !ok {
-								errs <- errors.Errorf("unexpected insert value %T at column %d: %s", c, i, row)
+								errE := errors.WithMessage(ErrUnexpectedType, "insert value")
+								errors.Details(errE)["type"] = fmt.Sprintf("%T", column)
+								errors.Details(errE)["column"] = i
+								errors.Details(errE)["row"] = string(row)
+								errs <- errE
 								return
 							}
 							z := c.GetValue()
@@ -489,15 +507,18 @@ func decodeRows[T any](
 							v[columns[i]] = z
 						}
 						// We marshal to JSON to decode to a struct if provided.
-						d, err := x.MarshalWithoutEscapeHTML(v)
-						if err != nil {
-							errs <- errors.WithStack(err)
+						d, errE := x.MarshalWithoutEscapeHTML(v)
+						if errE != nil {
+							errs <- errE
 							return
 						}
 						decodeJSON(ctx, d, output, errs)
 					}
 				default:
-					errs <- errors.Errorf("unexpected statement %T: %s", stmt, row)
+					errE := errors.WithMessage(ErrUnexpectedType, "statement")
+					errors.Details(errE)["type"] = fmt.Sprintf("%T", stmt)
+					errors.Details(errE)["row"] = string(row)
+					errs <- errE
 					return
 				}
 			} else {

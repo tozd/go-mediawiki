@@ -2,7 +2,6 @@ package mediawiki
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"math/big"
 	"regexp"
@@ -40,9 +39,9 @@ func (t EntityType) MarshalJSON() ([]byte, error) {
 
 func (t *EntityType) UnmarshalJSON(b []byte) error {
 	var s string
-	err := json.Unmarshal(b, &s)
-	if err != nil {
-		return errors.WithStack(err)
+	errE := x.Unmarshal(b, &s)
+	if errE != nil {
+		return errE
 	}
 	switch s {
 	case "item":
@@ -52,7 +51,9 @@ func (t *EntityType) UnmarshalJSON(b []byte) error {
 	case "mediainfo":
 		*t = MediaInfo
 	default:
-		return errors.Errorf("unknown entity type: %s", s)
+		errE := errors.WithMessage(ErrInvalidValue, "entity type")
+		errors.Details(errE)["value"] = s
+		return errE
 	}
 	return nil
 }
@@ -87,9 +88,9 @@ func (t WikiBaseEntityType) MarshalJSON() ([]byte, error) {
 
 func (t *WikiBaseEntityType) UnmarshalJSON(b []byte) error {
 	var s string
-	err := json.Unmarshal(b, &s)
-	if err != nil {
-		return errors.WithStack(err)
+	errE := x.Unmarshal(b, &s)
+	if errE != nil {
+		return errE
 	}
 	switch s {
 	case "item":
@@ -103,7 +104,9 @@ func (t *WikiBaseEntityType) UnmarshalJSON(b []byte) error {
 	case "sense":
 		*t = SenseType
 	default:
-		return errors.Errorf("unknown wikibase entity type: %s", s)
+		errE := errors.WithMessage(ErrInvalidValue, "wikibase entity type")
+		errors.Details(errE)["value"] = s
+		return errE
 	}
 	return nil
 }
@@ -126,15 +129,17 @@ func (t StatementType) MarshalJSON() ([]byte, error) {
 
 func (t *StatementType) UnmarshalJSON(b []byte) error {
 	var s string
-	err := json.Unmarshal(b, &s)
-	if err != nil {
-		return errors.WithStack(err)
+	errE := x.Unmarshal(b, &s)
+	if errE != nil {
+		return errE
 	}
 	switch s {
 	case "statement":
 		*t = StatementT
 	default:
-		return errors.Errorf("unknown statement type: %s", s)
+		errE := errors.WithMessage(ErrInvalidValue, "statement type")
+		errors.Details(errE)["value"] = s
+		return errE
 	}
 	return nil
 }
@@ -163,9 +168,9 @@ func (r StatementRank) MarshalJSON() ([]byte, error) {
 
 func (r *StatementRank) UnmarshalJSON(b []byte) error {
 	var s string
-	err := json.Unmarshal(b, &s)
-	if err != nil {
-		return errors.WithStack(err)
+	errE := x.Unmarshal(b, &s)
+	if errE != nil {
+		return errE
 	}
 	switch s {
 	case "preferred":
@@ -175,7 +180,9 @@ func (r *StatementRank) UnmarshalJSON(b []byte) error {
 	case "deprecated":
 		*r = Deprecated
 	default:
-		return errors.Errorf("unknown statement rank: %s", s)
+		errE := errors.WithMessage(ErrInvalidValue, "statement rank")
+		errors.Details(errE)["value"] = s
+		return errE
 	}
 	return nil
 }
@@ -204,9 +211,9 @@ func (t SnakType) MarshalJSON() ([]byte, error) {
 
 func (t *SnakType) UnmarshalJSON(b []byte) error {
 	var s string
-	err := json.Unmarshal(b, &s)
-	if err != nil {
-		return errors.WithStack(err)
+	errE := x.Unmarshal(b, &s)
+	if errE != nil {
+		return errE
 	}
 	switch s {
 	case "value":
@@ -216,7 +223,9 @@ func (t *SnakType) UnmarshalJSON(b []byte) error {
 	case "novalue":
 		*t = NoValue
 	default:
-		return errors.Errorf("unknown snak type: %s", s)
+		errE := errors.WithMessage(ErrInvalidValue, "snak type")
+		errors.Details(errE)["value"] = s
+		return errE
 	}
 	return nil
 }
@@ -287,9 +296,9 @@ func (t DataType) MarshalJSON() ([]byte, error) {
 
 func (t *DataType) UnmarshalJSON(b []byte) error {
 	var s string
-	err := json.Unmarshal(b, &s)
-	if err != nil {
-		return errors.WithStack(err)
+	errE := x.Unmarshal(b, &s)
+	if errE != nil {
+		return errE
 	}
 	switch s {
 	case "wikibase-item":
@@ -327,7 +336,9 @@ func (t *DataType) UnmarshalJSON(b []byte) error {
 	case "tabular-data":
 		*t = TabularData
 	default:
-		return errors.Errorf("unknown data type: %s", s)
+		errE := errors.WithMessage(ErrInvalidValue, "data type")
+		errors.Details(errE)["value"] = s
+		return errE
 	}
 	return nil
 }
@@ -380,9 +391,9 @@ func (t CalendarModel) MarshalJSON() ([]byte, error) {
 // It normalizes calendar Wikidata URIs to Go enumeration values.
 func (t *CalendarModel) UnmarshalJSON(b []byte) error {
 	var s string
-	err := json.Unmarshal(b, &s)
-	if err != nil {
-		return errors.WithStack(err)
+	errE := x.Unmarshal(b, &s)
+	if errE != nil {
+		return errE
 	}
 	switch s {
 	case "https://www.wikidata.org/wiki/Q1985727":
@@ -394,7 +405,9 @@ func (t *CalendarModel) UnmarshalJSON(b []byte) error {
 	case "http://www.wikidata.org/entity/Q1985786":
 		*t = Julian
 	default:
-		return errors.Errorf("unknown calendar model: %s", s)
+		errE := errors.WithMessage(ErrInvalidValue, "calendar model")
+		errors.Details(errE)["value"] = s
+		return errE
 	}
 	return nil
 }
@@ -445,13 +458,15 @@ func (a Amount) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON implements json.Unmarshaler interface for Amount.
 func (a *Amount) UnmarshalJSON(b []byte) error {
 	var s string
-	err := json.Unmarshal(b, &s)
-	if err != nil {
-		return errors.WithStack(err)
+	errE := x.Unmarshal(b, &s)
+	if errE != nil {
+		return errE
 	}
 	_, ok := a.SetString(s)
 	if !ok {
-		return errors.Errorf("cannot parse amount into number: %s", s)
+		errE := errors.WithMessage(ErrInvalidValue, "amount")
+		errors.Details(errE)["value"] = s
+		return errE
 	}
 	return nil
 }
@@ -490,15 +505,11 @@ func (v TimeValue) MarshalJSON() ([]byte, error) {
 		Calendar  CalendarModel `json:"calendarmodel"`
 	}
 	formatedTime := formatTime(v.Time, v.Precision)
-	b, err := x.MarshalWithoutEscapeHTML(t{
+	return x.MarshalWithoutEscapeHTML(t{
 		formatedTime,
 		v.Precision,
 		v.Calendar,
 	})
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	return b, err
 }
 
 // UnmarshalJSON implements json.Unmarshaler interface for TimeValue.
@@ -509,13 +520,13 @@ func (v *TimeValue) UnmarshalJSON(b []byte) error {
 		Calendar  CalendarModel `json:"calendarmodel"`
 	}
 	var d t
-	err := json.Unmarshal(b, &d)
-	if err != nil {
-		return errors.WithStack(err)
+	errE := x.UnmarshalWithoutUnknownFields(b, &d)
+	if errE != nil {
+		return errE
 	}
-	v.Time, err = parseTime(d.Time)
-	if err != nil {
-		return errors.WithStack(err)
+	v.Time, errE = parseTime(d.Time)
+	if errE != nil {
+		return errors.WithMessage(errE, "time value")
 	}
 	v.Precision = d.Precision
 	v.Calendar = d.Calendar
@@ -558,69 +569,72 @@ func formatTime(t time.Time, p TimePrecision) string {
 func (v DataValue) MarshalJSON() ([]byte, error) {
 	switch value := v.Value.(type) {
 	case ErrorValue:
-		b, err := x.MarshalWithoutEscapeHTML(struct {
+		return x.MarshalWithoutEscapeHTML(struct {
 			Error ErrorValue `json:"error"`
 		}{value})
-		return b, errors.WithStack(err)
 	case StringValue:
-		b, err := x.MarshalWithoutEscapeHTML(struct {
+		return x.MarshalWithoutEscapeHTML(struct {
 			Type  string      `json:"type"`
 			Value StringValue `json:"value"`
 		}{"string", value})
-		return b, errors.WithStack(err)
 	case WikiBaseEntityIDValue:
-		b, err := x.MarshalWithoutEscapeHTML(struct {
+		return x.MarshalWithoutEscapeHTML(struct {
 			Type  string                `json:"type"`
 			Value WikiBaseEntityIDValue `json:"value"`
 		}{"wikibase-entityid", value})
-		return b, errors.WithStack(err)
 	case GlobeCoordinateValue:
-		b, err := x.MarshalWithoutEscapeHTML(struct {
+		return x.MarshalWithoutEscapeHTML(struct {
 			Type  string               `json:"type"`
 			Value GlobeCoordinateValue `json:"value"`
 		}{"globecoordinate", value})
-		return b, errors.WithStack(err)
 	case MonolingualTextValue:
-		b, err := x.MarshalWithoutEscapeHTML(struct {
+		return x.MarshalWithoutEscapeHTML(struct {
 			Type  string               `json:"type"`
 			Value MonolingualTextValue `json:"value"`
 		}{"monolingualtext", value})
-		return b, errors.WithStack(err)
 	case QuantityValue:
-		b, err := x.MarshalWithoutEscapeHTML(struct {
+		return x.MarshalWithoutEscapeHTML(struct {
 			Type  string        `json:"type"`
 			Value QuantityValue `json:"value"`
 		}{"quantity", value})
-		return b, errors.WithStack(err)
 	case TimeValue:
-		b, err := x.MarshalWithoutEscapeHTML(struct {
+		return x.MarshalWithoutEscapeHTML(struct {
 			Type  string    `json:"type"`
 			Value TimeValue `json:"value"`
 		}{"time", value})
-		return b, errors.WithStack(err)
 	}
-	return nil, errors.Errorf(`unknown data value type: %+v`, v.Value)
+	errE := errors.WithMessage(ErrUnexpectedType, "data value")
+	errors.Details(errE)["type"] = fmt.Sprintf("%T", v.Value)
+	return nil, errE
 }
 
 func parseTime(t string) (time.Time, errors.E) {
 	match := timeRegex.FindStringSubmatch(t)
 	if match == nil {
-		return time.Time{}, errors.Errorf(`unable to parse time "%s"`, t)
+		errE := errors.WithMessage(ErrInvalidValue, "time")
+		errors.Details(errE)["value"] = t
+		return time.Time{}, errE
 	}
 	year, err := strconv.ParseInt(match[1], 10, 0)
 	if err != nil {
-		return time.Time{}, errors.WithMessagef(err, `unable to parse year "%s"`, t)
+		errE := errors.Errorf("year: %w: %w", ErrInvalidValue, err)
+		errors.Details(errE)["value"] = t
+		return time.Time{}, errE
 	}
 	if year < 0 {
 		// Wikidata uses historical numbering, in which year 0 is undefined,
 		// but Go uses astronomical numbering, so we add 1 here.
 		year++
 	} else if year == 0 {
-		return time.Time{}, errors.New("year cannot be 0")
+		errE := errors.Errorf("year: %w: cannot be 0", ErrInvalidValue)
+		errors.Details(errE)["value"] = t
+		return time.Time{}, errE
 	}
 	month, err := strconv.ParseInt(match[2], 10, 0)
 	if err != nil {
-		return time.Time{}, errors.WithMessagef(err, `unable to parse month "%s"`, t)
+		errE := errors.Errorf("month: %w: %w", ErrInvalidValue, err)
+		errors.Details(errE)["value"] = t
+		return time.Time{}, errE
 	}
 	if month == 0 {
 		// Wikidata uses 0 when month is unknown or insignificant.
@@ -629,7 +643,9 @@ func parseTime(t string) (time.Time, errors.E) {
 	}
 	day, err := strconv.ParseInt(match[3], 10, 0)
 	if err != nil {
-		return time.Time{}, errors.WithMessagef(err, `unable to parse day "%s"`, t)
+		errE := errors.Errorf("day: %w: %w", ErrInvalidValue, err)
+		errors.Details(errE)["value"] = t
+		return time.Time{}, errE
 	}
 	if day == 0 {
 		// Wikidata uses 0 when day is unknown or insignificant.
@@ -638,15 +654,21 @@ func parseTime(t string) (time.Time, errors.E) {
 	}
 	hour, err := strconv.ParseInt(match[4], 10, 0)
 	if err != nil {
-		return time.Time{}, errors.WithMessagef(err, `unable to parse hour "%s"`, t)
+		errE := errors.Errorf("hour: %w: %w", ErrInvalidValue, err)
+		errors.Details(errE)["value"] = t
+		return time.Time{}, errE
 	}
 	minute, err := strconv.ParseInt(match[5], 10, 0)
 	if err != nil {
-		return time.Time{}, errors.WithMessagef(err, `unable to parse minute "%s"`, t)
+		errE := errors.Errorf("minute: %w: %w", ErrInvalidValue, err)
+		errors.Details(errE)["value"] = t
+		return time.Time{}, errE
 	}
 	second, err := strconv.ParseInt(match[6], 10, 0)
 	if err != nil {
-		return time.Time{}, errors.WithMessagef(err, `unable to parse second "%s"`, t)
+		errE := errors.Errorf("second: %w: %w", ErrInvalidValue, err)
+		errors.Details(errE)["value"] = t
+		return time.Time{}, errE
 	}
 	return time.Date(int(year), time.Month(month), int(day), int(hour), int(minute), int(second), 0, time.UTC), nil
 }
@@ -659,9 +681,9 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 		Type  string `json:"type"`
 		Error string `json:"error"`
 	}
-	err := json.Unmarshal(b, &t)
-	if err != nil {
-		return errors.WithStack(err)
+	errE := x.UnmarshalWithoutUnknownFields(b, &t)
+	if errE != nil {
+		return errE
 	}
 	if t.Error != "" {
 		v.Value = ErrorValue(norm.NFC.String(t.Error))
@@ -673,9 +695,9 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 			Type  string `json:"type"`
 			Value string `json:"value"`
 		}
-		err := x.UnmarshalWithoutUnknownFields(b, &t)
-		if err != nil {
-			return err
+		errE := x.UnmarshalWithoutUnknownFields(b, &t)
+		if errE != nil {
+			return errE
 		}
 		v.Value = StringValue(norm.NFC.String(t.Value))
 	case "wikibase-entityid":
@@ -689,9 +711,9 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 				NumericID int `json:"numeric-id"` //nolint:tagliatelle
 			} `json:"value"`
 		}
-		err := x.UnmarshalWithoutUnknownFields(b, &t)
-		if err != nil {
-			return err
+		errE := x.UnmarshalWithoutUnknownFields(b, &t)
+		if errE != nil {
+			return errE
 		}
 		v.Value = WikiBaseEntityIDValue{
 			Type: t.Value.Type,
@@ -710,9 +732,9 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 				Globe     string  `json:"globe"`
 			} `json:"value"`
 		}
-		err := x.UnmarshalWithoutUnknownFields(b, &t)
-		if err != nil {
-			return err
+		errE := x.UnmarshalWithoutUnknownFields(b, &t)
+		if errE != nil {
+			return errE
 		}
 		v.Value = GlobeCoordinateValue{
 			Latitude:  t.Value.Latitude,
@@ -725,9 +747,9 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 			Type  string               `json:"type"`
 			Value MonolingualTextValue `json:"value"`
 		}
-		err := x.UnmarshalWithoutUnknownFields(b, &t)
-		if err != nil {
-			return err
+		errE := x.UnmarshalWithoutUnknownFields(b, &t)
+		if errE != nil {
+			return errE
 		}
 		t.Value.Text = norm.NFC.String(t.Value.Text)
 		v.Value = t.Value
@@ -736,9 +758,9 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 			Type  string        `json:"type"`
 			Value QuantityValue `json:"value"`
 		}
-		err := x.UnmarshalWithoutUnknownFields(b, &t)
-		if err != nil {
-			return err
+		errE := x.UnmarshalWithoutUnknownFields(b, &t)
+		if errE != nil {
+			return errE
 		}
 		v.Value = t.Value
 	case "time":
@@ -757,13 +779,13 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 				After int64 `json:"after"`
 			} `json:"value"`
 		}
-		err := x.UnmarshalWithoutUnknownFields(b, &t)
-		if err != nil {
-			return err
+		errE := x.UnmarshalWithoutUnknownFields(b, &t)
+		if errE != nil {
+			return errE
 		}
-		parsedTime, err := parseTime(t.Value.Time)
-		if err != nil {
-			v.Value = ErrorValue(err.Error())
+		parsedTime, errE := parseTime(t.Value.Time)
+		if errE != nil {
+			v.Value = ErrorValue(fmt.Sprintf("%s: %s", errE.Error(), t.Value.Time))
 		} else {
 			v.Value = TimeValue{
 				Time:      parsedTime,
@@ -772,7 +794,10 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 			}
 		}
 	default:
-		return errors.Errorf(`unknown data value type "%s": %s`, t.Type, string(b))
+		errE := errors.WithMessage(ErrInvalidValue, "data value")
+		errors.Details(errE)["value"] = t.Type
+		errors.Details(errE)["json"] = string(b)
+		return errE
 	}
 	return nil
 }

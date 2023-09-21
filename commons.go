@@ -2,13 +2,13 @@ package mediawiki
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/elliotchance/phpserialize"
 	"github.com/hashicorp/go-retryablehttp"
 	"gitlab.com/tozd/go/errors"
+	"gitlab.com/tozd/go/x"
 )
 
 // LatestCommonsEntitiesRun returns URL of the latest run of Wikimedia Commons entities JSON dump.
@@ -84,13 +84,16 @@ func DecodeImageMetadata(metadata interface{}) (map[string]interface{}, errors.E
 
 	m, ok := metadata.(string)
 	if !ok {
-		return nil, errors.New("metadata is not a string")
+		errE := errors.WithMessage(ErrUnexpectedType, "metadata")
+		errors.Details(errE)["expected"] = "string"
+		errors.Details(errE)["type"] = fmt.Sprintf("%T", metadata)
+		return nil, errE
 	}
 	if strings.HasPrefix(m, "{") {
 		var d map[string]interface{}
-		err := json.Unmarshal([]byte(m), &d)
-		if err != nil {
-			return nil, errors.WithStack(err)
+		errE := x.Unmarshal([]byte(m), &d)
+		if errE != nil {
+			return nil, errE
 		}
 		return d, nil
 	}
@@ -98,7 +101,7 @@ func DecodeImageMetadata(metadata interface{}) (map[string]interface{}, errors.E
 	var d map[interface{}]interface{}
 	err := phpserialize.Unmarshal([]byte(m), &d)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.WithMessage(err, "phpserialize unmarshal")
 	}
 	return convertToStringMapsMap(d), nil
 }
