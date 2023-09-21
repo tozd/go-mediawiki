@@ -32,41 +32,6 @@ const (
 	progressPrintRate = 30 * time.Second
 )
 
-type syncVar[T any] struct {
-	lock *sync.RWMutex
-	cond *sync.Cond
-	v    *T
-}
-
-func (w *syncVar[T]) Load() T { //nolint:ireturn
-	w.cond.L.Lock()
-	defer w.cond.L.Unlock()
-	for w.v == nil {
-		w.cond.Wait()
-	}
-	return *w.v
-}
-
-func (w *syncVar[T]) Store(v T) errors.E {
-	w.lock.Lock()
-	defer w.lock.Unlock()
-	if w.v != nil {
-		return errors.WithStack(ErrSyncVarAlreadyStored)
-	}
-	w.v = &v
-	w.cond.Broadcast()
-	return nil
-}
-
-func newWriteOnce[T any]() *syncVar[T] {
-	l := &sync.RWMutex{}
-	return &syncVar[T]{
-		lock: l,
-		cond: sync.NewCond(l.RLocker()),
-		v:    nil,
-	}
-}
-
 type iterator interface {
 	More() bool
 	Next(*[]byte) errors.E
@@ -434,7 +399,7 @@ func decodeJSON[T any](ctx context.Context, r []byte, output chan<- T, errs chan
 }
 
 func decodeRows[T any](
-	ctx context.Context, config *ProcessConfig[T], wg *sync.WaitGroup, decodeRowsState *syncVar[[]string],
+	ctx context.Context, config *ProcessConfig[T], wg *sync.WaitGroup, decodeRowsState *x.SyncVar[[]string],
 	input <-chan []byte, output chan<- T, errs chan<- errors.E,
 ) {
 	defer wg.Done()
@@ -602,7 +567,7 @@ func Process[T any](ctx context.Context, config *ProcessConfig[T]) errors.E {
 	}()
 
 	var decodeRowsWg sync.WaitGroup
-	decodeRowsState := newWriteOnce[[]string]()
+	decodeRowsState := x.NewSyncVar[[]string]()
 	mainWg.Add(1)
 	for w := 0; w < config.DecodingThreads; w++ {
 		decodeRowsWg.Add(1)
