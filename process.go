@@ -38,7 +38,7 @@ type syncVar[T any] struct {
 	v    *T
 }
 
-func (w *syncVar[T]) Load() T {
+func (w *syncVar[T]) Load() T { //nolint:ireturn
 	w.cond.L.Lock()
 	defer w.cond.L.Unlock()
 	for w.v == nil {

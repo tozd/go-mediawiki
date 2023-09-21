@@ -85,7 +85,7 @@ func DecodeImageMetadata(metadata interface{}) (map[string]interface{}, errors.E
 	m, ok := metadata.(string)
 	if !ok {
 		errE := errors.WithMessage(ErrUnexpectedType, "metadata")
-		errors.Details(errE)["expected"] = "string"
+		errors.Details(errE)["expected"] = "string" //nolint:goconst
 		errors.Details(errE)["type"] = fmt.Sprintf("%T", metadata)
 		return nil, errE
 	}
