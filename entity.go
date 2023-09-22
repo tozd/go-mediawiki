@@ -681,7 +681,9 @@ func (v *DataValue) UnmarshalJSON(b []byte) error {
 		Type  string `json:"type"`
 		Error string `json:"error"`
 	}
-	errE := x.UnmarshalWithoutUnknownFields(b, &t)
+	// We do not use UnmarshalWithoutUnknownFields because if there
+	// is no "error" field, there is "value" field.
+	errE := x.Unmarshal(b, &t)
 	if errE != nil {
 		return errE
 	}

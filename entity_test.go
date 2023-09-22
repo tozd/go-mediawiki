@@ -33,7 +33,7 @@ func TestTime(t *testing.T) {
 			t.Parallel()
 
 			p, err := parseTime(test.time)
-			require.NoError(t, err)
+			require.NoError(t, err, "% -+#.1v", err)
 			s := formatTime(p, test.precision)
 			assert.Equal(t, test.time, s)
 		})
@@ -61,7 +61,7 @@ func TestAmount(t *testing.T) {
 			err := json.Unmarshal([]byte(in), &a)
 			require.NoError(t, err)
 			out, err := x.MarshalWithoutEscapeHTML(a)
-			require.NoError(t, err)
+			require.NoError(t, err, "% -+#.1v", err)
 			assert.Equal(t, in, string(out))
 		})
 	}

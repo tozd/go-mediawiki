@@ -33,12 +33,12 @@ func TestProcessWikidataDumpLatest(t *testing.T) {
 	}
 
 	url, errE := mediawiki.LatestWikidataEntitiesRun(context.Background(), client)
-	require.NoError(t, errE)
+	require.NoError(t, errE, "% -+#.1v", errE)
 
 	cacheDir := t.TempDir()
 	dumpPath := filepath.Join(cacheDir, path.Base(url))
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	entityCounter := int64(0)
@@ -74,7 +74,7 @@ func TestProcessWikidataDumpLatest(t *testing.T) {
 		},
 	)
 	if !errors.Is(errE, context.DeadlineExceeded) && !errors.Is(errE, context.Canceled) {
-		assert.Fail(t, "not a context error", "%+v", errE)
+		assert.Fail(t, "not a context error", "% -+#.1v", errE)
 	}
 	assert.LessOrEqual(t, int64(1), entityCounter)
 }
@@ -121,7 +121,7 @@ func TestProcessWikidataDumpExplicit(t *testing.T) {
 			return nil
 		},
 	)
-	assert.NoError(t, errE)
+	assert.NoError(t, errE, "% -+#.1v", errE)
 	assert.Equal(t, int64(10), entityCounter)
 
 	assert.FileExists(t, dumpPath)
@@ -159,6 +159,6 @@ func TestProcessWikidataDumpExplicit(t *testing.T) {
 			return nil
 		},
 	)
-	assert.NoError(t, errE)
+	assert.NoError(t, errE, "% -+#.1v", errE)
 	assert.Equal(t, int64(10), entityCounter)
 }

@@ -55,5 +55,5 @@ require (
 require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/stretchr/testify v1.7.0
-	gitlab.com/tozd/go/x v0.0.0-20230921201626-ecd25f3fdfdf
+	gitlab.com/tozd/go/x v0.0.0-20230921202854-6affd1779c65
 )

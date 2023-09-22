@@ -61,7 +61,7 @@ func TestCompressionRemote(t *testing.T) {
 				FileType:    test.dumpType,
 				Compression: test.compression,
 			})
-			assert.NoError(t, err)
+			assert.NoError(t, err, "% -+#.1v", err)
 			assert.Equal(t, int64(test.items), itemCounter)
 		})
 	}
@@ -87,7 +87,7 @@ func TestCompressionLocal(t *testing.T) {
 				FileType:    test.dumpType,
 				Compression: test.compression,
 			})
-			assert.NoError(t, err)
+			assert.NoError(t, err, "% -+#.1v", err)
 			assert.Equal(t, int64(test.items), itemCounter)
 		})
 	}
@@ -117,6 +117,6 @@ func TestSQLDump(t *testing.T) {
 		FileType:    mediawiki.SQLDump,
 		Compression: mediawiki.GZIP,
 	})
-	assert.NoError(t, err)
+	assert.NoError(t, err, "% -+#.1v", err)
 	assert.Equal(t, int64(9057), itemCounter)
 }
