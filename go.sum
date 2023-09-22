@@ -124,8 +124,6 @@ github.com/xanzy/ssh-agent v0.3.0 h1:wUMzuKtKilRgBAD1sUb8gOwwRr2FGoBVumcjoOACClI
 github.com/xanzy/ssh-agent v0.3.0/go.mod h1:3s9xbODqPuuhK9JV1R321M/FlMZSBvE5aY6eAcqrDh0=
 gitlab.com/tozd/go/errors v0.7.2 h1:nkpU8cxcDZnUhtZ9UPSw2DTNUXEcTaz6KiKLF9p2Fys=
 gitlab.com/tozd/go/errors v0.7.2/go.mod h1:PvIdUMLpPwxr+KEBxghQaCMydHXGYdJQn/PhdMqYREY=
-gitlab.com/tozd/go/x v0.0.0-20230921202133-048e8142db35 h1:sknji75ICjZEAxOsJB/qlzB/KrMCLfqdnGX6V767j4E=
-gitlab.com/tozd/go/x v0.0.0-20230921202133-048e8142db35/go.mod h1:dfbPwrP/MP19b1ub9OJRubipPv9BsEsXfypSX+yhoKk=
 gitlab.com/tozd/go/x v0.0.0-20230921202854-6affd1779c65 h1:WTfzaNcc20mwAPxUVN4B63TWoEX4ZkqxxqkUx4t2ImA=
 gitlab.com/tozd/go/x v0.0.0-20230921202854-6affd1779c65/go.mod h1:dfbPwrP/MP19b1ub9OJRubipPv9BsEsXfypSX+yhoKk=
 go.uber.org/atomic v1.3.2/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=

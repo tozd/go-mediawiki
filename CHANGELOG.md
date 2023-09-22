@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Improve errors.
+- Go 1.20 or newer is required.
+
 ## [0.13.0] - 2023-09-16
 
 ### Changed
