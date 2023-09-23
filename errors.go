@@ -5,10 +5,9 @@ import (
 )
 
 var (
-	ErrUnexpectedType       = errors.Base("unexpected type")
-	ErrInvalidValue         = errors.Base("invalid value")
-	ErrNotFound             = errors.Base("not found")
-	ErrJSONDecode           = errors.Base("cannot decode json")
-	ErrSQLParse             = errors.Base("cannot parse SQL")
-	ErrSyncVarAlreadyStored = errors.Base("already stored")
+	ErrUnexpectedType = errors.Base("unexpected type")
+	ErrInvalidValue   = errors.Base("invalid value")
+	ErrNotFound       = errors.Base("not found")
+	ErrJSONDecode     = errors.Base("cannot decode json")
+	ErrSQLParse       = errors.Base("cannot parse SQL")
 )
