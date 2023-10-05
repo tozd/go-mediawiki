@@ -273,11 +273,6 @@ protected_branches:
 # name: The name of the tag or wildcard. Type: string
 protected_tags:
   - allowed_to_create:
-      # TOZD Bot
-      - access_level: 40
-        deploy_key_id: null
-        group_id: null
-        user_id: 10417491
       # Maintainers
       - access_level: 40
         deploy_key_id: null
@@ -305,7 +300,7 @@ variables:
     protected: true
     raw: false
     # sops:enc
-    value: ENC[AES256_GCM,data:pP/D6ym8+vvh/4ccDpAyRHuqX/4NMme6fy8=,iv:nyjRyf8iclJoYvjm+kQJdyoQuo9+5nOjBCWjPWYMLw8=,tag:HPe6LjpogyT5TFLYHVIhsA==,type:str]
+    value: ENC[AES256_GCM,data:KaT1ti3ckc5BqimBpfN3Bga49C9QNgzaKFs=,iv:u9FbA4W+A6Dyf7urQYI1fhPjJrSxaR/qOHYWc+AnsJc=,tag:xwu2HTk7buAH3qa6Ik60vQ==,type:str]
     variable_type: env_var
   - description: null
     environment_scope: '*'
@@ -314,7 +309,7 @@ variables:
     protected: true
     raw: false
     # sops:enc
-    value: ENC[AES256_GCM,data:hEiWzZUfs96Up/UOeUANiKwuB4TBYKYRd83QNTKCF/9lnlKUlX1ss4xDxVveUa2RGoComN+yOs0QEQLZaA1NGRVbcF2K0XK/3x6V6OBGi611x//4P/L7nVN6viSv5o+iw5CbzZ+P6JmuInNDEJv+REt/lEYIToa48QLZO+8wkhOQHMYlK0JY9HwhyGAlOMsVP7waJGlyMdG0LQyHJTV+4M63fayfdhF/hxfwEXc2mhoLKpz7QjoddR6VZw/U,iv:wxHsxXutbmMt5knZJDS3Id+RGSjGaG4Ep0wql0VdxHM=,tag:z/hQSgVRbqBKq9Jbpa22vA==,type:str]
+    value: ENC[AES256_GCM,data:UD8En5VSHuy2Cxd2SH/agjjmrBPOKcqCDdBZPfX9Lgme4yN3lfZ3P13IGC61j2g1LrRX0Aq2Wm4uYFCH/5fdmcagNV8isddqEcYFIQr/yDgl3cvrhjkXalnOKn7hDE/WbhaHV7qlZpAfach4kYcig9PVuYh+0FCkgJz7JhU3X+6qiZpiKkhng2f5PbRmCj1ex8DzJQKw7VPiPpAtjtg67tA7m+CbVZ7qwEEQ+bBYXXk3P708wGDipaVIhXoB,iv:5PKqIrTdd4HFMbrYiHRopLxWNT4zL+8Jg/pFocgrvn4=,tag:DTA71sPNVpWR3UxVu7Td0A==,type:str]
     variable_type: file
 # active: The activation of pipeline schedule. If false is set, the pipeline
 # schedule is initially deactivated. Type: boolean
@@ -337,14 +332,14 @@ sops:
     - recipient: age1txs7q5kagh2kjpz9g7uznyn9hhhy4pjktq9lj2cghv5ns3stfs3sl4qg59
       enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBIWGpyRzR3NTNBQmdyZG9J
-        ZjIwVDlMQVFxa3dyVHp1Q28xUnZjV2JvUEdJCk16NWFtUDQ0NG1jM2l1VGprbG5C
-        YWVPMWkwM3FuRVJSY3pudWNxZVpINDgKLS0tIFBUUzhrdUxxSXFab0x4dCs1VHcw
-        RjdIT0ZrSHFxTG5uSVdQWFhicVJUUXMKzq3AEt5CsIMF9ZrGiUZ12r7Cg07JgFgD
-        rb1w2qJKJxH89IlPE6b17E2LhxyGdHqST1O44PomGLav6yw3ZFnseA==
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBKeHNxSkZqUDVJdHdObXc1
+        UEowMnNZV0g5U2VyYnRHams4cFZrbHFaSHgwCkhraUQ4dXZqWUFWRXhlRkdJbEQw
+        U01ZQ2FzWEJlSDFmSUVyV1NqaTdyQ0UKLS0tIGlTMDM4Uk9va1JVb1dFK1d2Z0w5
+        NXVwTXlVd0FmcXYzUVl3TUk0THRrV00KUI429QiCE1KrGvjO0pPcrOG7H2NxJYHL
+        /sIpfNqH76w3VZ0iyDcpIzS+7LS3X1gtdVBh1YMTEqk44Oh6bpWMFw==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2023-10-04T22:01:44Z"
-  mac: ENC[AES256_GCM,data:wZpU7zyjK/TjcjEieqIv8vpHNDGN8E9sJK0mwSwgTKtI/bOiUUC33MrrTV2dL8VlIolFvuh9TOKoX++BaktsRNwxeHEnangQoMftBnbO4TqRMbJxBYyibLjt6amuIfzZoqbAIHGIqyOPPAWuucxmuYQVO24nLB1bwhrQUBcuGv8=,iv:/qvtZh80n5rZaJxc8byQ7iP3bKL1Goq5bHikvAHz/4w=,tag:Y+OqeWwg8CS/tScQQnC1/g==,type:str]
+  lastmodified: "2023-10-05T19:09:38Z"
+  mac: ENC[AES256_GCM,data:1oyRhhI6T2VCKT5BfMZVm9Rd6QT1xO2Wqmp1N53TIgAJXRyWIXNGIHXEpinZ4KjzTiNpNbAYz30+p79BbV4bbqcnOxWAu9xAaeYN0qRjw+PRGKsvgj5EnLkRViAjPbjpK3MfvBmWFgs2cvZUkFIKObnEifqhw7UYP8ghnzPBhbQ=,iv:9hX9sXznMiUhiCr0a1PvmiuQfhyb0jYS2UFejSl+clw=,tag:yZkoXTo6FrcGgX9+m9RCJA==,type:str]
   pgp: []
   encrypted_comment_regex: sops:enc
   mac_only_encrypted: true
