@@ -30,9 +30,11 @@ go get gitlab.com/tozd/go/mediawiki
 
 It requires Go 1.20 or newer.
 
-There is also a [read-only GitHub mirror available](https://github.com/tozd/go-mediawiki),
-if you need to fork the project there.
-
 ## Usage
 
 See full package documentation on [pkg.go.dev](https://pkg.go.dev/gitlab.com/tozd/go/mediawiki#section-documentation).
+
+## GitHub mirror
+
+There is also a [read-only GitHub mirror available](https://github.com/tozd/go-mediawiki),
+if you need to fork the project there.
