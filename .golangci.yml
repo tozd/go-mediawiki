@@ -33,6 +33,8 @@ linters-settings:
     go: "1.21"
     checks:
       - all
+  tagalign:
+    strict: true
   tagliatelle:
     case:
       rules:
