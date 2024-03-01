@@ -28,7 +28,7 @@ func TestProcessWikipediaDumpLatest(t *testing.T) {
 	t.Parallel()
 
 	client := retryablehttp.NewClient()
-	client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
+	client.RequestLogHook = func(_ retryablehttp.Logger, req *http.Request, _ int) {
 		req.Header.Set("User-Agent", testUserAgent)
 	}
 
@@ -83,7 +83,7 @@ func TestProcessWikipediaDumpExplicit(t *testing.T) {
 	t.Parallel()
 
 	client := retryablehttp.NewClient()
-	client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
+	client.RequestLogHook = func(_ retryablehttp.Logger, req *http.Request, _ int) {
 		req.Header.Set("User-Agent", testUserAgent)
 	}
 

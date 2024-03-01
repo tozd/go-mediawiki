@@ -39,7 +39,7 @@ func TestCompressionRemote(t *testing.T) {
 	t.Parallel()
 
 	client := retryablehttp.NewClient()
-	client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
+	client.RequestLogHook = func(_ retryablehttp.Logger, req *http.Request, _ int) {
 		req.Header.Set("User-Agent", testUserAgent)
 	}
 
@@ -54,7 +54,7 @@ func TestCompressionRemote(t *testing.T) {
 			err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig[interface{}]{
 				URL:    testFilesBaseURL + test.name,
 				Client: client,
-				Process: func(ctx context.Context, i interface{}) errors.E {
+				Process: func(_ context.Context, _ interface{}) errors.E {
 					atomic.AddInt64(&itemCounter, int64(1))
 					return nil
 				},
@@ -80,7 +80,7 @@ func TestCompressionLocal(t *testing.T) {
 
 			err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig[interface{}]{
 				Path: "testdata/" + test.name,
-				Process: func(ctx context.Context, i interface{}) errors.E {
+				Process: func(_ context.Context, _ interface{}) errors.E {
 					atomic.AddInt64(&itemCounter, int64(1))
 					return nil
 				},
@@ -97,7 +97,7 @@ func TestSQLDump(t *testing.T) {
 	t.Parallel()
 
 	client := retryablehttp.NewClient()
-	client.RequestLogHook = func(logger retryablehttp.Logger, req *http.Request, retry int) {
+	client.RequestLogHook = func(_ retryablehttp.Logger, req *http.Request, _ int) {
 		req.Header.Set("User-Agent", testUserAgent)
 	}
 
@@ -106,7 +106,7 @@ func TestSQLDump(t *testing.T) {
 	err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig[map[string]interface{}]{
 		URL:    testFilesBaseURL + "commonswiki-20220120-image.sql.gz",
 		Client: client,
-		Process: func(ctx context.Context, i map[string]interface{}) errors.E {
+		Process: func(_ context.Context, i map[string]interface{}) errors.E {
 			_, err := mediawiki.DecodeImageMetadata(i["img_metadata"])
 			if err != nil {
 				return err
