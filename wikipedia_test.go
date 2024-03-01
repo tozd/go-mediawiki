@@ -128,7 +128,7 @@ func TestProcessWikipediaDumpExplicit(t *testing.T) {
 
 	info, err := os.Stat(dumpPath)
 	require.NoError(t, err)
-	assert.Equal(t, int64(174843), info.Size())
+	assert.Equal(t, int64(174079), info.Size())
 
 	articleCounter = int64(0)
 

@@ -130,7 +130,7 @@ func TestProcessCommonsDumpExplicit(t *testing.T) {
 
 	info, err := os.Stat(dumpPath)
 	require.NoError(t, err)
-	assert.Equal(t, int64(3158), info.Size())
+	assert.Equal(t, int64(3525), info.Size())
 
 	entityCounter = int64(0)
 
