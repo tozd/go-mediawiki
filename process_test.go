@@ -104,7 +104,7 @@ func TestSQLDump(t *testing.T) {
 	itemCounter := int64(0)
 
 	err := mediawiki.Process(context.Background(), &mediawiki.ProcessConfig[map[string]interface{}]{
-		URL:    testFilesBaseURL + "commonswiki-20220120-image.sql.gz",
+		URL:    testFilesBaseURL + "commonswiki-testdata-image.sql.gz",
 		Client: client,
 		Process: func(_ context.Context, i map[string]interface{}) errors.E {
 			_, err := mediawiki.DecodeImageMetadata(i["img_metadata"])
