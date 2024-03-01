@@ -48,6 +48,7 @@ type Version struct {
 	Scores              *Scores  `json:"scores,omitempty"`
 	Size                *Size    `json:"size,omitempty"`
 	NumberOfCharacters  int64    `json:"number_of_characters,omitempty"`
+	Event               Event    `json:"event"`
 }
 
 // TODO: Should Type and Level be enumerations?
