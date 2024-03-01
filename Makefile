@@ -1,6 +1,6 @@
 SHELL = /bin/bash -o pipefail
 
-.PHONY: test test-ci lint lint-ci fmt fmt-ci clean release lint-docs audit encrypt decrypt sops
+.PHONY: test test-ci lint lint-ci fmt fmt-ci clean release lint-docs audit update-testdata encrypt decrypt sops
 
 test:
 	gotestsum --format pkgname --packages ./... -- -race -timeout 10m -cover -covermode atomic
@@ -12,9 +12,15 @@ test-ci:
 
 lint:
 	golangci-lint run --timeout 4m --color always --allow-parallel-runners --fix
+	find testdata -name '*.go' -print0 | xargs -0 -n1 -I % golangci-lint run --timeout 4m --color always --allow-parallel-runners --fix %
 
 lint-ci:
-	golangci-lint run --timeout 4m --out-format colored-line-number,code-climate:codeclimate.json
+	golangci-lint run --timeout 4m --out-format colored-line-number,code-climate:codeclimate.json --issues-exit-code 0
+	find testdata -name '*.go' -print0 | xargs -0 -n1 -I % golangci-lint run --timeout 4m --out-format colored-line-number,code-climate:%_codeclimate.json --issues-exit-code 0 %
+	jq -s 'add' codeclimate.json testdata/*_codeclimate.json > /tmp/codeclimate.json
+	mv /tmp/codeclimate.json codeclimate.json
+	rm -f testdata/*_codeclimate.json
+	jq -e '. == []' codeclimate.json
 
 fmt:
 	go mod tidy
@@ -25,7 +31,7 @@ fmt-ci: fmt
 	git diff --exit-code --color=always
 
 clean:
-	rm -f coverage.* codeclimate.json tests.xml
+	rm -rf coverage.* codeclimate.json testdata/*_codeclimate.json tests.xml coverage
 
 release:
 	npx --yes --package 'release-it@15.4.2' --package '@release-it/keep-a-changelog@3.1.0' -- release-it
@@ -35,6 +41,17 @@ lint-docs:
 
 audit:
 	go list -json -deps ./... | nancy sleuth --skip-update-check
+
+update-testdata:
+	go -C testdata run update.go
+	gzip --keep --force testdata/commons-testdata-mediainfo.json
+	bzip2 --keep --force testdata/commons-testdata-mediainfo.json
+	gzip --keep --force testdata/wikidata-testdata-all.json
+	bzip2 --keep --force testdata/wikidata-testdata-all.json
+	tar -C testdata --create --file testdata/enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar enwiki_namespace_0_0.ndjson
+	rm -f testdata/enwiki_namespace_0_0.ndjson
+	gzip --keep --force testdata/enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar
+	bzip2 --keep --force testdata/enwiki-NS0-testdata-ENTERPRISE-HTML.json.tar
 
 encrypt:
 	gitlab-config sops --encrypt --mac-only-encrypted --in-place --encrypted-comment-regex sops:enc .gitlab-conf.yml
