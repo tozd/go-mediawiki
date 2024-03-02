@@ -396,13 +396,15 @@ func (t *CalendarModel) UnmarshalJSON(b []byte) error {
 		return errE
 	}
 	switch s {
-	case "https://www.wikidata.org/wiki/Q1985727":
+	case "https://www.wikidata.org/wiki/Q1985727", "http://www.wikidata.org/entity/Q1985727":
 		*t = Gregorian
-	case "http://www.wikidata.org/entity/Q1985727":
+	case "https://www.wikidata.org/wiki/Q12138", "http://www.wikidata.org/entity/Q12138":
+		// Officially it should not be used, but it has been found in data.
 		*t = Gregorian
-	case "https://www.wikidata.org/wiki/Q1985786":
+	case "https://www.wikidata.org/wiki/Q1985786", "http://www.wikidata.org/entity/Q1985786":
 		*t = Julian
-	case "http://www.wikidata.org/entity/Q1985786":
+	case "https://www.wikidata.org/wiki/Q11184", "http://www.wikidata.org/entity/Q11184":
+		// Officially it should not be used, but just in case it is used.
 		*t = Julian
 	default:
 		errE := errors.WithMessage(ErrInvalidValue, "calendar model")
