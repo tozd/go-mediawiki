@@ -15,7 +15,6 @@ import (
 	"sync"
 	"time"
 	"unicode/utf8"
-	"unsafe"
 
 	"github.com/cosnicolaou/pbzip2"
 	"github.com/hashicorp/go-retryablehttp"
@@ -415,7 +414,7 @@ func decodeRows[T any](
 			}
 
 			if config.FileType == SQLDump {
-				rowString := *(*string)(unsafe.Pointer(&row))
+				rowString := x.ByteSlice2String(row)
 				stmt, err := sqlParser.ParseOneStmt(rowString, "", "")
 				if err != nil {
 					errE := errors.Prefix(err, ErrSQLParse)
