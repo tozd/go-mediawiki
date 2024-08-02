@@ -325,6 +325,12 @@ func getFileRows[T any]( //nolint:maintidx
 				errs <- errors.WithMessage(err, "json decoder token")
 				return
 			}
+
+			_, err = (*json.Decoder)(iter.(*jsonIterator)).Token()
+			if !errors.Is(err, io.EOF) {
+				errs <- errors.New("invalid data after top-level value")
+				return
+			}
 		}
 
 		if config.Compression != Tar && config.Compression != GZIPTar && config.Compression != BZIP2Tar {
