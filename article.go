@@ -28,8 +28,9 @@ type Score struct {
 }
 
 type Scores struct {
-	Damaging  *Score `json:"damaging,omitempty"`
-	Goodfaith *Score `json:"goodfaith,omitempty"`
+	Damaging   *Score `json:"damaging,omitempty"`
+	Goodfaith  *Score `json:"goodfaith,omitempty"`
+	RevertRisk *Score `json:"revertrisk,omitempty"`
 }
 
 type Size struct {
@@ -37,18 +38,28 @@ type Size struct {
 	Unit  string `json:"unit_text"`
 }
 
+type MaintenanceTags struct {
+	CitationNeededCount      int `json:"citation_needed_count,omitempty"`
+	PoVCount                 int `json:"pov_count,omitempty"`
+	ClarificationNeededCount int `json:"clarification_needed_count,omitempty"`
+	UpdateCount              int `json:"update_count,omitempty"`
+}
+
 type Version struct {
-	Identifier          int64    `json:"identifier"`
-	Editor              *Editor  `json:"editor,omitempty"`
-	Comment             string   `json:"comment,omitempty"`
-	Tags                []string `json:"tags,omitempty"`
-	HasTagNeedsCitation bool     `json:"has_tag_needs_citation,omitempty"`
-	IsMinorEdit         bool     `json:"is_minor_edit,omitempty"`
-	IsFlaggedStable     bool     `json:"is_flagged_stable,omitempty"`
-	Scores              *Scores  `json:"scores,omitempty"`
-	Size                *Size    `json:"size,omitempty"`
-	NumberOfCharacters  int64    `json:"number_of_characters,omitempty"`
-	Event               Event    `json:"event"`
+	Identifier          int64            `json:"identifier"`
+	Editor              *Editor          `json:"editor,omitempty"`
+	Comment             string           `json:"comment,omitempty"`
+	Tags                []string         `json:"tags,omitempty"`
+	HasTagNeedsCitation bool             `json:"has_tag_needs_citation,omitempty"`
+	IsMinorEdit         bool             `json:"is_minor_edit,omitempty"`
+	IsFlaggedStable     bool             `json:"is_flagged_stable,omitempty"`
+	Scores              *Scores          `json:"scores,omitempty"`
+	Size                *Size            `json:"size,omitempty"`
+	NumberOfCharacters  int64            `json:"number_of_characters,omitempty"`
+	Event               Event            `json:"event"`
+	IsBreakingMews      bool             `json:"is_breaking_news,omitempty"`
+	NoIndex             bool             `json:"noindex,omitempty"`
+	MaintenanceTags     *MaintenanceTags `json:"maintenance_tags,omitempty"`
 }
 
 // TODO: Should Type and Level be enumerations?
