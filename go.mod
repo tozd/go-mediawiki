@@ -8,7 +8,7 @@ require (
 	github.com/cosnicolaou/pbzip2 v1.0.2-0.20211229030036-3ed02fdb7541
 	github.com/elliotchance/phpserialize v1.3.2
 	github.com/foolin/pagser v0.1.5
-	github.com/hashicorp/go-retryablehttp v0.7.5
+	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/klauspost/pgzip v1.2.5
 	github.com/pingcap/parser v0.0.0-20210802034743-dd9b189324ce
 	gitlab.com/tozd/go/errors v0.8.0
@@ -51,7 +51,7 @@ require (
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/net v0.21.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/tools v0.15.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
