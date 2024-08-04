@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update Wikimedia Enterprise HTML `Article` struct to the latest schema with
+  `revertrisk`, `is_breaking_news`, `noindex`, and `maintenance_tags` fields.
 - Go 1.21 or newer is required.
 
 ## [0.14.1] - 2024-03-02
