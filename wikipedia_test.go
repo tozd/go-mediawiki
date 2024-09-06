@@ -121,7 +121,7 @@ func TestProcessWikipediaDumpExplicit(t *testing.T) {
 			return nil
 		},
 	)
-	assert.NoError(t, errE, "% -+#.1v", errE)
+	require.NoError(t, errE, "% -+#.1v", errE)
 	assert.Equal(t, int64(10), articleCounter)
 
 	assert.FileExists(t, dumpPath)
@@ -159,6 +159,6 @@ func TestProcessWikipediaDumpExplicit(t *testing.T) {
 			return nil
 		},
 	)
-	assert.NoError(t, errE, "% -+#.1v", errE)
+	require.NoError(t, errE, "% -+#.1v", errE)
 	assert.Equal(t, int64(10), articleCounter)
 }

@@ -33,7 +33,7 @@ const (
 
 type iterator interface {
 	More() bool
-	Next(*[]byte) errors.E
+	Next(b *[]byte) errors.E
 }
 
 type jsonIterator json.Decoder
@@ -574,7 +574,7 @@ func Process[T any](ctx context.Context, config *ProcessConfig[T]) errors.E {
 	var decodeRowsWg sync.WaitGroup
 	decodeRowsState := x.NewSyncVar[[]string]()
 	mainWg.Add(1)
-	for w := 0; w < config.DecodingThreads; w++ {
+	for range config.DecodingThreads {
 		decodeRowsWg.Add(1)
 		go decodeRows(ctx, config, &decodeRowsWg, decodeRowsState, rows, items, errs)
 	}
@@ -588,7 +588,7 @@ func Process[T any](ctx context.Context, config *ProcessConfig[T]) errors.E {
 
 	var processItemWg sync.WaitGroup
 	mainWg.Add(1)
-	for w := 0; w < config.ItemsProcessingThreads; w++ {
+	for range config.ItemsProcessingThreads {
 		processItemWg.Add(1)
 		go processItems(ctx, config, &processItemWg, items, errs)
 	}

@@ -123,7 +123,7 @@ func TestProcessCommonsDumpExplicit(t *testing.T) {
 			return nil
 		},
 	)
-	assert.NoError(t, errE, "% -+#.1v", errE)
+	require.NoError(t, errE, "% -+#.1v", errE)
 	assert.Equal(t, int64(10), entityCounter)
 
 	assert.FileExists(t, dumpPath)
@@ -161,6 +161,6 @@ func TestProcessCommonsDumpExplicit(t *testing.T) {
 			return nil
 		},
 	)
-	assert.NoError(t, errE, "% -+#.1v", errE)
+	require.NoError(t, errE, "% -+#.1v", errE)
 	assert.Equal(t, int64(10), entityCounter)
 }

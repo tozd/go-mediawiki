@@ -27,8 +27,6 @@ func TestTime(t *testing.T) {
 		{"-13798000000-00-00T00:00:00Z", Year},
 	}
 	for _, test := range tests {
-		test := test
-
 		t.Run(test.time, func(t *testing.T) {
 			t.Parallel()
 
@@ -51,8 +49,6 @@ func TestAmount(t *testing.T) {
 		"+0",
 	}
 	for _, test := range tests {
-		test := test
-
 		t.Run(test, func(t *testing.T) {
 			t.Parallel()
 

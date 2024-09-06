@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gitlab.com/tozd/go/errors"
 
 	"gitlab.com/tozd/go/mediawiki"
@@ -44,8 +45,6 @@ func TestCompressionRemote(t *testing.T) {
 	}
 
 	for _, test := range compressionTests {
-		test := test
-
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -61,7 +60,7 @@ func TestCompressionRemote(t *testing.T) {
 				FileType:    test.dumpType,
 				Compression: test.compression,
 			})
-			assert.NoError(t, err, "% -+#.1v", err)
+			require.NoError(t, err, "% -+#.1v", err)
 			assert.Equal(t, int64(test.items), itemCounter)
 		})
 	}
@@ -71,8 +70,6 @@ func TestCompressionLocal(t *testing.T) {
 	t.Parallel()
 
 	for _, test := range compressionTests {
-		test := test
-
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -87,7 +84,7 @@ func TestCompressionLocal(t *testing.T) {
 				FileType:    test.dumpType,
 				Compression: test.compression,
 			})
-			assert.NoError(t, err, "% -+#.1v", err)
+			require.NoError(t, err, "% -+#.1v", err)
 			assert.Equal(t, int64(test.items), itemCounter)
 		})
 	}
@@ -117,6 +114,6 @@ func TestSQLDump(t *testing.T) {
 		FileType:    mediawiki.SQLDump,
 		Compression: mediawiki.GZIP,
 	})
-	assert.NoError(t, err, "% -+#.1v", err)
+	require.NoError(t, err, "% -+#.1v", err)
 	assert.Equal(t, int64(9057), itemCounter)
 }

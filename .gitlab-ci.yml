@@ -14,8 +14,9 @@ test:
   before_script:
     - apk --update add make bash gcc musl-dev git-lfs
     - git lfs fetch
-    - (cd /go; go install gotest.tools/gotestsum@v1.10.1)
+    - (cd /go; go install gotest.tools/gotestsum@v1.12.0)
     - (cd /go; go install github.com/boumenot/gocover-cobertura@v1.2.0)
+    - go version
 
   script:
     - make test-ci
@@ -37,16 +38,16 @@ test:
 
   parallel:
     matrix:
-      - IMAGE_TAG: ['1.21-alpine3.18']
+      - IMAGE_TAG: ['1.23-alpine3.19']
 
 lint:
   stage: test
 
-  image: golang:1.21-alpine3.18
+  image: golang:1.23-alpine3.19
 
   before_script:
     - apk --update add make bash gcc musl-dev jq
-    - wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.56.2
+    - wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.60.3
 
   script:
     - make lint-ci
@@ -60,13 +61,13 @@ lint:
 fmt:
   stage: test
 
-  image: golang:1.21-alpine3.18
+  image: golang:1.23-alpine3.19
 
   before_script:
     - apk --update add make bash git gcc musl-dev grep git-lfs
     - git lfs fetch
-    - go install mvdan.cc/gofumpt@v0.5.0
-    - go install golang.org/x/tools/cmd/goimports@v0.13.0
+    - go install mvdan.cc/gofumpt@v0.7.0
+    - go install golang.org/x/tools/cmd/goimports@v0.24.0
 
   script:
     - make fmt-ci
@@ -74,7 +75,7 @@ fmt:
 lint_docs:
   stage: test
 
-  image: node:17-alpine3.14
+  image: node:20.17-alpine3.19
 
   before_script:
     - apk --update add make bash
@@ -85,12 +86,12 @@ lint_docs:
 audit:
   stage: test
 
-  image: golang:1.21-alpine3.18
+  image: golang:1.23-alpine3.19
 
   before_script:
     - apk --update add make bash git gcc musl-dev git-lfs
     - git lfs fetch
-    - go install github.com/sonatype-nexus-community/nancy@v1.0.42
+    - go install github.com/sonatype-nexus-community/nancy@v1.0.46
 
   script:
     - make audit
@@ -98,7 +99,7 @@ audit:
 commits:
   stage: test
 
-  image: golang:1.21-alpine3.18
+  image: golang:1.23-alpine3.19
 
   variables:
     GIT_DEPTH: "0"
@@ -112,7 +113,7 @@ commits:
 publish:
   stage: deploy
 
-  image: golang:1.21-alpine3.18
+  image: golang:1.23-alpine3.19
 
   script:
     - GOPROXY=proxy.golang.org go list -m "gitlab.com/tozd/go/mediawiki@$CI_COMMIT_REF_NAME"
