@@ -1,1 +1,2 @@
 CVE-2023-46402 # git-urls is not used by this package
+CVE-2024-8421 # does not use HTTP server
