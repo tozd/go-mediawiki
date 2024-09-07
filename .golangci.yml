@@ -34,6 +34,9 @@ linters-settings:
     case:
       rules:
         json: snake
+  testifylint:
+    require-error:
+      fn-pattern: ^(NoError|NotErrorIs)$
 
 linters:
   disable-all: true
