@@ -228,7 +228,7 @@ func getFileRows[T any]( //nolint:maintidx
 	}
 
 	countingReader := &x.CountingReader{Reader: compressedReader}
-	ticker := x.NewTicker(ctx, countingReader, compressedSize, progressPrintRate)
+	ticker := x.NewTicker(ctx, countingReader, x.NewCounter(compressedSize), progressPrintRate)
 	defer ticker.Stop()
 	go func() {
 		for progress := range ticker.C {
