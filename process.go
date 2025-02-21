@@ -268,7 +268,7 @@ func getFileRows[T any]( //nolint:maintidx
 	for {
 		if config.Compression == Tar || config.Compression == GZIPTar || config.Compression == BZIP2Tar {
 			// Go to the first or next file in gzip/tar.
-			_, err := decompressedReader.(*tar.Reader).Next()
+			_, err := decompressedReader.(*tar.Reader).Next() //nolint:forcetypeassert,errcheck
 			if err != nil {
 				// When there are no more files in gzip/tar, Next returns io.EOF.
 				if errors.Is(err, io.EOF) {
@@ -291,7 +291,7 @@ func getFileRows[T any]( //nolint:maintidx
 
 		if config.FileType == JSONArray {
 			// Read open bracket.
-			_, err := (*json.Decoder)(iter.(*jsonIterator)).Token()
+			_, err := (*json.Decoder)(iter.(*jsonIterator)).Token() //nolint:forcetypeassert,errcheck
 			if err != nil {
 				errs <- errors.WithMessage(err, "json decoder token")
 				return
@@ -320,13 +320,13 @@ func getFileRows[T any]( //nolint:maintidx
 
 		if config.FileType == JSONArray {
 			// Read closing bracket.
-			_, err := (*json.Decoder)(iter.(*jsonIterator)).Token()
+			_, err := (*json.Decoder)(iter.(*jsonIterator)).Token() //nolint:forcetypeassert,errcheck
 			if err != nil {
 				errs <- errors.WithMessage(err, "json decoder token")
 				return
 			}
 
-			_, err = (*json.Decoder)(iter.(*jsonIterator)).Token()
+			_, err = (*json.Decoder)(iter.(*jsonIterator)).Token() //nolint:forcetypeassert,errcheck
 			if !errors.Is(err, io.EOF) {
 				errs <- errors.New("invalid data after top-level value")
 				return

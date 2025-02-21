@@ -2,7 +2,7 @@ module gitlab.com/tozd/go/mediawiki
 
 go 1.23
 
-toolchain go1.23.1
+toolchain go1.23.6
 
 require (
 	github.com/cosnicolaou/pbzip2 v1.0.3
