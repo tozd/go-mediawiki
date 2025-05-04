@@ -66,6 +66,7 @@ const (
 	LexemeType
 	FormType
 	SenseType
+	EntitySchemaType
 )
 
 func (t WikiBaseEntityType) MarshalJSON() ([]byte, error) {
@@ -81,6 +82,8 @@ func (t WikiBaseEntityType) MarshalJSON() ([]byte, error) {
 		buffer.WriteString("form")
 	case SenseType:
 		buffer.WriteString("sense")
+	case EntitySchemaType:
+		buffer.WriteString("entity-schema")
 	}
 	buffer.WriteString(`"`)
 	return buffer.Bytes(), nil
@@ -103,6 +106,8 @@ func (t *WikiBaseEntityType) UnmarshalJSON(b []byte) error {
 		*t = FormType
 	case "sense":
 		*t = SenseType
+	case "entity-schema":
+		*t = EntitySchemaType
 	default:
 		errE := errors.WithMessage(ErrInvalidValue, "wikibase entity type")
 		errors.Details(errE)["value"] = s
@@ -250,6 +255,7 @@ const (
 	MusicalNotation
 	WikiBaseForm
 	TabularData
+	EntitySchema
 )
 
 func (t DataType) MarshalJSON() ([]byte, error) {
@@ -289,6 +295,8 @@ func (t DataType) MarshalJSON() ([]byte, error) {
 		buffer.WriteString("wikibase-form")
 	case TabularData:
 		buffer.WriteString("tabular-data")
+	case EntitySchema:
+		buffer.WriteString("entity-schema")
 	}
 	buffer.WriteString(`"`)
 	return buffer.Bytes(), nil
@@ -335,6 +343,8 @@ func (t *DataType) UnmarshalJSON(b []byte) error {
 		*t = WikiBaseForm
 	case "tabular-data":
 		*t = TabularData
+	case "entity-schema":
+		*t = EntitySchema
 	default:
 		errE := errors.WithMessage(ErrInvalidValue, "data type")
 		errors.Details(errE)["value"] = s
