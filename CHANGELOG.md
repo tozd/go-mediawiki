@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support for `entity-schema` entity and data types.
+
 ## [0.16.0] - 2024-09-06
 
 ### Changed
