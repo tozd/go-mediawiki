@@ -490,8 +490,8 @@ func (a *Amount) String() string {
 
 type QuantityValue struct {
 	Amount     Amount  `json:"amount"`
-	UpperBound *Amount `json:"upperBound,omitempty"` //nolint:tagliatelle
-	LowerBound *Amount `json:"lowerBound,omitempty"` //nolint:tagliatelle
+	UpperBound *Amount `json:"upperBound,omitempty"`
+	LowerBound *Amount `json:"lowerBound,omitempty"`
 	Unit       string  `json:"unit"`
 }
 

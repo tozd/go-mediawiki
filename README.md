@@ -28,7 +28,7 @@ This is a Go package. You can add it to your project using `go get`:
 go get gitlab.com/tozd/go/mediawiki
 ```
 
-It requires Go 1.23 or newer.
+It requires Go 1.24 or newer.
 
 ## Usage
 

@@ -1,166 +1,88 @@
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-  gocritic:
-    disabled-checks:
-      - ifElseChain
-  godot:
-    scope: all
-  goimports:
-    local-prefixes: gitlab.com/tozd/go/mediawiki
-  gosimple:
-    checks:
-      - all
-  govet:
-    enable-all: true
-    disable:
-      - fieldalignment
-  lll:
-    line-length: 170
-  nestif:
-    min-complexity: 15
-  nolintlint:
-    allow-unused: false
-    require-specific: true
-  stylecheck:
-    checks:
-      - all
-  staticcheck:
-    checks:
-      - all
-  tagalign:
-    strict: true
-  tagliatelle:
-    case:
-      rules:
-        json: snake
-  testifylint:
-    require-error:
-      fn-pattern: ^(NoError|NotErrorIs)$
-
+version: "2"
 linters:
-  disable-all: true
+  default: all
+  disable:
+    - arangolint
+    - cyclop
+    - depguard
+    - funcorder
+    - funlen
+    - gocognit
+    - gocyclo
+    - godox
+    - nlreturn
+    - unqueryvet
+    - varnamelen
+    - wsl
+    - wsl_v5
+  settings:
+    errcheck:
+      check-type-assertions: true
+    exhaustruct:
+      allow-empty: true
+    gocritic:
+      disabled-checks:
+        - ifElseChain
+    godot:
+      scope: all
+    govet:
+      disable:
+        - fieldalignment
+      enable-all: true
+    lll:
+      line-length: 170
+    nestif:
+      min-complexity: 15
+    nolintlint:
+      require-specific: true
+      allow-unused: false
+    staticcheck:
+      checks:
+        - all
+    tagalign:
+      strict: true
+    tagliatelle:
+      case:
+        rules:
+          json: snake
+    testifylint:
+      require-error:
+        fn-pattern: ^(NoError|NotErrorIs)$
+  exclusions:
+    generated: strict
+    warn-unused: true
+    rules:
+      - linters:
+          - dupl
+          - exhaustruct
+          - gochecknoglobals
+        path: .*_test\.go
+      - linters:
+          - testpackage
+        path: entity_test\.go
+      - linters:
+          - dupl
+        path: commons\.go
+      - linters:
+          - dupl
+        path: wikidata\.go
+formatters:
   enable:
-    - asasalint
-    - asciicheck
-    - bidichk
-    - bodyclose
-    - canonicalheader
-    - containedctx
-    - contextcheck
-    - copyloopvar
-    - decorder
-    - dogsled
-    - dupl
-    - dupword
-    - durationcheck
-    - err113
-    - errcheck
-    - errchkjson
-    - errname
-    - errorlint
-    - exhaustive
-    - exhaustruct
-    - fatcontext
-    - forbidigo
-    - forcetypeassert
-    - ginkgolinter
-    - gocheckcompilerdirectives
-    - gochecknoglobals
-    - gochecknoinits
-    - gochecksumtype
-    - goconst
-    - gocritic
-    - godot
     - gofmt
     - gofumpt
-    - goheader
     - goimports
-    - gomoddirectives
-    - gomodguard
-    - goprintffuncname
-    - gosec
-    - gosimple
-    - gosmopolitan
-    - govet
-    - grouper
-    - importas
-    - inamedparam
-    - ineffassign
-    - interfacebloat
-    - intrange
-    - ireturn
-    - lll
-    - loggercheck
-    - maintidx
-    - makezero
-    - mirror
-    - misspell
-    - mnd
-    - musttag
-    - nakedret
-    - nestif
-    - nilerr
-    - nilnil
-    - noctx
-    - nolintlint
-    - nonamedreturns
-    - nosprintfhostport
-    - paralleltest
-    - perfsprint
-    - prealloc
-    - predeclared
-    - promlinter
-    - protogetter
-    - reassign
-    - revive
-    - rowserrcheck
-    - sloglint
-    - spancheck
-    - sqlclosecheck
-    - staticcheck
-    - stylecheck
-    - tagalign
-    - tagliatelle
-    - testableexamples
-    - testifylint
-    - testpackage
-    - thelper
-    - tparallel
-    - typecheck
-    - unconvert
-    - unparam
-    - unused
-    - usestdlibvars
-    - usetesting
-    - wastedassign
-    - whitespace
-    - wrapcheck
-    - zerologlint
-    # - cyclop
-    # - depguard
-    # - funlen
     # - gci
-    # - gocognit
-    # - gocyclo
-    # - godox
-    # - nlreturn
-    # - varnamelen
-    # - wsl
-
+    # - golines
+    # - swaggo
+  settings:
+    goimports:
+      local-prefixes:
+        - gitlab.com/tozd/go/mediawiki
+  exclusions:
+    generated: strict
+    warn-unused: true
 issues:
-  exclude-rules:
-    - path: .*_test\.go
-      linters:
-        - dupl
-        - exhaustruct
-        - gochecknoglobals
-    - path: entity_test\.go
-      linters:
-        - testpackage
-    - path: commons\.go
-      linters:
-        - dupl
-    - path: wikidata\.go
-      linters:
-        - dupl
+  max-issues-per-linter: 0
+  max-same-issues: 0
+run:
+  timeout: 4m
