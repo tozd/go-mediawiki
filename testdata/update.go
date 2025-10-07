@@ -1,3 +1,4 @@
+// Command update runs the update of the test data.
 package main
 
 import (
@@ -6,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/hashicorp/go-retryablehttp"
 	"gitlab.com/tozd/go/errors"
@@ -40,11 +42,11 @@ func entities(ctx context.Context, client *retryablehttp.Client, url, output str
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	file, err := os.Create(output)
+	file, err := os.Create(filepath.Clean(output))
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	entriesCount := 0
 	_, _ = file.WriteString("[\n")
@@ -96,7 +98,7 @@ func Wikipedia(ctx context.Context, client *retryablehttp.Client) errors.E {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	entriesCount := 0
 	errE = mediawiki.Process(ctx, &mediawiki.ProcessConfig[json.RawMessage]{ //nolint:exhaustruct

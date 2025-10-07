@@ -488,6 +488,7 @@ func (a *Amount) String() string {
 	return a.FloatString(l + q)
 }
 
+//nolint:tagliatelle
 type QuantityValue struct {
 	Amount     Amount  `json:"amount"`
 	UpperBound *Amount `json:"upperBound,omitempty"`

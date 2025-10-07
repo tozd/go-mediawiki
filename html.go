@@ -32,7 +32,7 @@ func latestRun(ctx context.Context, client *retryablehttp.Client, runURL, fileFo
 		errors.Details(errE)["url"] = runURL
 		return "", errE
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close()              //nolint:errcheck
 	defer io.Copy(io.Discard, resp.Body) //nolint:errcheck
 
 	p := pagser.New()
@@ -60,7 +60,7 @@ func latestRun(ctx context.Context, client *retryablehttp.Client, runURL, fileFo
 				errors.Details(errE)["url"] = url
 				return "", errE
 			}
-			defer resp.Body.Close()
+			defer resp.Body.Close()              //nolint:errcheck
 			defer io.Copy(io.Discard, resp.Body) //nolint:errcheck
 			if resp.StatusCode == http.StatusOK {
 				return url, nil

@@ -53,6 +53,9 @@ linters:
     warn-unused: true
     rules:
       - linters:
+          - revive
+        text: "exported: exported"
+      - linters:
           - dupl
           - exhaustruct
           - gochecknoglobals
@@ -60,12 +63,6 @@ linters:
       - linters:
           - testpackage
         path: entity_test\.go
-      - linters:
-          - dupl
-        path: commons\.go
-      - linters:
-          - dupl
-        path: wikidata\.go
 formatters:
   enable:
     - gofmt

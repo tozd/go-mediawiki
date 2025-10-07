@@ -169,7 +169,7 @@ func getFileRows[T any]( //nolint:maintidx
 			}
 			// File does not exists. Continue.
 		} else {
-			defer compressedFile.Close()
+			defer compressedFile.Close() //nolint:errcheck
 			compressedReader = compressedFile
 			compressedSize, err = compressedFile.Seek(0, io.SeekEnd)
 			if err != nil {
@@ -203,7 +203,7 @@ func getFileRows[T any]( //nolint:maintidx
 			errs <- errE
 			return
 		}
-		defer downloadReader.Close()
+		defer downloadReader.Close() //nolint:errcheck
 		compressedSize = downloadReader.Size()
 		if config.Path != "" {
 			compressedFile, err := os.Create(config.Path)
@@ -220,7 +220,7 @@ func getFileRows[T any]( //nolint:maintidx
 					_ = os.Remove(config.Path)
 				}
 			}()
-			defer compressedFile.Close()
+			defer compressedFile.Close() //nolint:errcheck
 			compressedReader = io.TeeReader(downloadReader, compressedFile)
 		} else {
 			compressedReader = downloadReader
@@ -253,7 +253,7 @@ func getFileRows[T any]( //nolint:maintidx
 			errs <- errors.WithMessage(err, "new gzip reader")
 			return
 		}
-		defer gzipReader.Close()
+		defer gzipReader.Close() //nolint:errcheck
 		decompressedReader = gzipReader
 	case NoCompression, Tar:
 		decompressedReader = countingReader
