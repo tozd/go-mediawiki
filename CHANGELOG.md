@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.0] - 2025-10-07
+
 ### Changed
 
 - Go 1.24 or newer is required.
@@ -156,7 +158,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First public release.
 
-[unreleased]: https://gitlab.com/tozd/go/mediawiki/-/compare/v0.17.0...main
+[unreleased]: https://gitlab.com/tozd/go/mediawiki/-/compare/v0.18.0...main
+[0.18.0]: https://gitlab.com/tozd/go/mediawiki/-/compare/v0.17.0...v0.18.0
 [0.17.0]: https://gitlab.com/tozd/go/mediawiki/-/compare/v0.16.0...v0.17.0
 [0.16.0]: https://gitlab.com/tozd/go/mediawiki/-/compare/v0.15.0...v0.16.0
 [0.15.0]: https://gitlab.com/tozd/go/mediawiki/-/compare/v0.14.1...v0.15.0
