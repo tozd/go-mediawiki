@@ -44,7 +44,7 @@ require (
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/stretchr/testify v1.11.1
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
-	gitlab.com/tozd/go/x v0.0.0-20251002214449-5aff7a85d570
+	gitlab.com/tozd/go/x v0.0.0-20251006201239-ef5d96c2f196
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect

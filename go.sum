@@ -121,8 +121,8 @@ github.com/xanzy/ssh-agent v0.3.3/go.mod h1:6dzNDKs0J9rVPHPhaGCukekBHKqfl+L3KghI
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 gitlab.com/tozd/go/errors v0.10.0 h1:A98kL+gaDvWnY6ZB/u8zP+sYaWsWUGBHeFMtamvW/74=
 gitlab.com/tozd/go/errors v0.10.0/go.mod h1:q3Ugr0C8dCzMEkrzjjlV2qNsm9e0KvqBjwcbcjCpBe4=
-gitlab.com/tozd/go/x v0.0.0-20251002214449-5aff7a85d570 h1:QOcoMuqtLlccxk/X88YUo7CWX0tNRlzl9q2MCXgp81o=
-gitlab.com/tozd/go/x v0.0.0-20251002214449-5aff7a85d570/go.mod h1:TQ8Y2A96Hx3qcvStUxv7r25P3I32AJo8BlW5AI7IIhs=
+gitlab.com/tozd/go/x v0.0.0-20251006201239-ef5d96c2f196 h1:M7SDwAUCUEPmWiuLC1l+i5593kHz00nSr5A6F1D0HAE=
+gitlab.com/tozd/go/x v0.0.0-20251006201239-ef5d96c2f196/go.mod h1:Cp1T0q82aJiX2gOrhKSocHotMfwoMYwP5vOkXq8Vgf8=
 go.uber.org/atomic v1.6.0/go.mod h1:sABNBOSYdrvTF6hTgEIbc7YasKWGhgEQZyfxyTvoXHQ=
 go.uber.org/atomic v1.7.0/go.mod h1:fEN4uk6kAWBTFdckzkM89CLk9XfWZrxpCo0nPH17wJc=
 go.uber.org/atomic v1.9.0/go.mod h1:fEN4uk6kAWBTFdckzkM89CLk9XfWZrxpCo0nPH17wJc=
