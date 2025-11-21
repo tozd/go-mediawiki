@@ -53,6 +53,9 @@ linters:
     warn-unused: true
     rules:
       - linters:
+          - govet
+        text: 'shadow: declaration of "(err|errE)" shadows declaration'
+      - linters:
           - revive
         text: "exported: exported"
       - linters:

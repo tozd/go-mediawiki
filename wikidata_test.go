@@ -53,7 +53,7 @@ func TestProcessWikidataDumpLatest(t *testing.T) {
 		func(_ context.Context, a mediawiki.Entity) errors.E {
 			atomic.AddInt64(&entityCounter, int64(1))
 			cancel()
-			b, errE := x.MarshalWithoutEscapeHTML(a) //nolint:govet
+			b, errE := x.MarshalWithoutEscapeHTML(a)
 			if errE != nil {
 				return errors.Wrapf(errE, "cannot marshal json: %+v", a)
 			}
@@ -139,7 +139,7 @@ func TestProcessWikidataDumpExplicit(t *testing.T) {
 		},
 		func(_ context.Context, a mediawiki.Entity) errors.E {
 			atomic.AddInt64(&entityCounter, int64(1))
-			b, errE := x.MarshalWithoutEscapeHTML(a) //nolint:govet
+			b, errE := x.MarshalWithoutEscapeHTML(a)
 			if errE != nil {
 				return errors.Wrapf(errE, "cannot marshal json: %+v", a)
 			}
