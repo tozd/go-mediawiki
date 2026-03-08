@@ -258,7 +258,7 @@ func getFileRows[T any]( //nolint:maintidx
 	case NoCompression, Tar:
 		decompressedReader = countingReader
 	default:
-		errE := errors.Errorf("unknown compression", config.Compression)
+		errE := errors.New("unknown compression")
 		errors.Details(errE)["compression"] = config.Compression
 		panic(errE)
 	}
